@@ -9,11 +9,12 @@ import {
 import { LandingScreen } from "./src/components/LandingScreen";
 import { ColorSpectrum } from "./src/components/ColorSpectrum";
 import { HexDisplay } from "./src/components/HexDisplay";
+import { ChallengeScreen } from "./src/components/ChallengeScreen";
 import { THEME } from "./src/constants/theme";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
-  const [screen, setScreen] = useState<"landing" | "picker">("landing");
+  const [screen, setScreen] = useState<"landing" | "picker" | "challenge">("landing");
   const [hex, setHex] = useState("#00FF41");
 
   const handleColorChange = useCallback(
@@ -40,6 +41,15 @@ export default function App() {
     );
   }
 
+  if (screen === "challenge") {
+    return (
+      <GestureHandlerRootView style={styles.root}>
+        <StatusBar style="light" />
+        <ChallengeScreen onBack={() => setScreen("picker")} />
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.root}>
@@ -60,7 +70,7 @@ export default function App() {
         </View>
 
         {/* Result */}
-        <HexDisplay hex={hex} />
+        <HexDisplay hex={hex} onChallenge={() => setScreen("challenge")} />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

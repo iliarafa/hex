@@ -49,6 +49,24 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 /**
+ * Euclidean distance between two hex colors in RGB space (0-441).
+ */
+export function colorDistance(hex1: string, hex2: string): number {
+  const a = hexToRgb(hex1);
+  const b = hexToRgb(hex2);
+  return Math.sqrt((a.r - b.r) ** 2 + (a.g - b.g) ** 2 + (a.b - b.b) ** 2);
+}
+
+/**
+ * Generate a random vibrant hex color (saturation=100%, lightness 25-75%).
+ */
+export function randomHex(): string {
+  const h = Math.floor(Math.random() * 360);
+  const l = 25 + Math.floor(Math.random() * 50);
+  return hslToHex(h, 100, l);
+}
+
+/**
  * Given a position on the spectrum canvas, return the corresponding HSL values.
  * x/canvasWidth maps to hue (0-360), y/canvasHeight maps to lightness (100-0, top=bright).
  */
