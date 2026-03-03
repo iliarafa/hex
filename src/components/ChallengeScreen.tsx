@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import * as Haptics from "expo-haptics";
 import { ColorSpectrum } from "./ColorSpectrum";
 import { THEME } from "../constants/theme";
@@ -70,7 +70,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
   const distancePercent = Math.max(0, Math.round((1 - distance / MAX_DISTANCE) * 100));
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
@@ -80,9 +80,14 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
           <Text style={styles.title}>CHALLENGE</Text>
           <View style={styles.backButtonSpacer} />
         </View>
-        {bestStreak > 0 && (
-          <Text style={styles.streakText}>BEST:{bestStreak}</Text>
-        )}
+        <Text style={styles.subtitle}>
+          {bestStreak > 0 ? `BEST:${bestStreak}` : "FIND THE COLOR"}
+        </Text>
+      </View>
+
+      {/* Spectrum */}
+      <View style={styles.spectrumContainer}>
+        <ColorSpectrum height={340} onColorChange={handleColorChange} />
       </View>
 
       {/* Target */}
@@ -90,18 +95,12 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
         <View style={styles.targetRow}>
           <View style={[styles.targetSwatch, { backgroundColor: targetHex }]} />
           <View style={styles.targetInfo}>
-            <Text style={styles.targetLabel}>FIND THIS COLOR</Text>
             <Text style={styles.targetHex}>{targetHex}</Text>
             <Text style={styles.targetRgb}>
               R:{targetRgb.r} G:{targetRgb.g} B:{targetRgb.b}
             </Text>
           </View>
         </View>
-      </View>
-
-      {/* Spectrum */}
-      <View style={styles.spectrumContainer}>
-        <ColorSpectrum height={300} onColorChange={handleColorChange} />
       </View>
 
       {/* Status */}
@@ -139,7 +138,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
         )}
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -151,7 +150,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 32,
+    paddingBottom: 12,
   },
   titleRow: {
     flexDirection: "row",
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
     color: THEME.textDim,
     textAlign: "center",
   },
-  streakText: {
+  subtitle: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
@@ -184,7 +183,8 @@ const styles = StyleSheet.create({
   },
   targetSection: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   targetRow: {
     flexDirection: "row",
@@ -194,11 +194,6 @@ const styles = StyleSheet.create({
   targetInfo: {
     flex: 1,
     gap: 8,
-  },
-  targetLabel: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
   },
   targetSwatch: {
     width: 48,

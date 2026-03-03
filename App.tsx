@@ -32,65 +32,62 @@ export default function App() {
     );
   }
 
-  if (screen === "landing") {
-    return (
-      <GestureHandlerRootView style={styles.root}>
-        <StatusBar style="light" />
-        <LandingScreen onStart={() => setScreen("picker")} />
-      </GestureHandlerRootView>
-    );
-  }
+  const renderScreen = () => {
+    if (screen === "challenge") {
+      return <ChallengeScreen onBack={() => setScreen("picker")} />;
+    }
 
-  if (screen === "challenge") {
     return (
-      <GestureHandlerRootView style={styles.root}>
-        <StatusBar style="light" />
-        <ChallengeScreen onBack={() => setScreen("picker")} />
-      </GestureHandlerRootView>
+      <ScrollView
+        style={styles.root}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.titleRow}>
+            <TouchableOpacity onPress={() => setScreen("landing")} style={styles.backButtonContainer}>
+              <Text style={styles.backButton}>{"<"}</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>HEX</Text>
+            <View style={styles.backButtonSpacer} />
+          </View>
+          <Text style={styles.subtitle}>COLOR PICKER</Text>
+        </View>
+
+        {/* Spectrum */}
+        <View style={styles.spectrumContainer}>
+          <ColorSpectrum height={340} onColorChange={handleColorChange} />
+        </View>
+
+        {/* Result */}
+        <HexDisplay hex={hex} />
+
+        {/* Spacer */}
+        <View style={{ flex: 1 }} />
+
+        {/* Challenge link at bottom */}
+        <TouchableOpacity
+          onPress={() => setScreen("challenge")}
+          style={styles.challengeLink}
+        >
+          <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
+        </TouchableOpacity>
+      </ScrollView>
     );
-  }
+  };
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.root}>
         <StatusBar style="light" />
-        <ScrollView
-          style={styles.root}
-          contentContainerStyle={styles.scrollContent}
-          bounces={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <TouchableOpacity onPress={() => setScreen("landing")} style={styles.backButtonContainer}>
-                <Text style={styles.backButton}>{"<"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.title}>HEX</Text>
-              <View style={styles.backButtonSpacer} />
-            </View>
-            <Text style={styles.subtitle}>COLOR PICKER</Text>
-          </View>
-
-          {/* Spectrum */}
-          <View style={styles.spectrumContainer}>
-            <ColorSpectrum height={340} onColorChange={handleColorChange} />
-          </View>
-
-          {/* Result */}
-          <HexDisplay hex={hex} />
-
-          {/* Spacer */}
-          <View style={{ flex: 1 }} />
-
-          {/* Challenge link at bottom */}
-          <TouchableOpacity
-            onPress={() => setScreen("challenge")}
-            style={styles.challengeLink}
-          >
-            <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        {screen === "landing" ? null : renderScreen()}
       </SafeAreaView>
+      {screen === "landing" && (
+        <View style={StyleSheet.absoluteFill}>
+          <LandingScreen onStart={() => setScreen("picker")} />
+        </View>
+      )}
     </GestureHandlerRootView>
   );
 }
