@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "hex",
-    "slug": "hex",
+    "name": "HEX",
+    "slug": "hex-color-picker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "backgroundColor": "#0a0a0a",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
