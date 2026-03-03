@@ -61,10 +61,13 @@ export default function App() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => setScreen("landing")}>
-              <Text style={styles.backButton}>{"<"}</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>HEX</Text>
+            <View style={styles.titleRow}>
+              <TouchableOpacity onPress={() => setScreen("landing")} style={styles.backButtonContainer}>
+                <Text style={styles.backButton}>{"<"}</Text>
+              </TouchableOpacity>
+              <Text style={styles.title}>HEX</Text>
+              <View style={styles.backButtonSpacer} />
+            </View>
             <Text style={styles.subtitle}>COLOR PICKER</Text>
           </View>
 
@@ -74,7 +77,18 @@ export default function App() {
           </View>
 
           {/* Result */}
-          <HexDisplay hex={hex} onChallenge={() => setScreen("challenge")} />
+          <HexDisplay hex={hex} />
+
+          {/* Spacer */}
+          <View style={{ flex: 1 }} />
+
+          {/* Challenge link at bottom */}
+          <TouchableOpacity
+            onPress={() => setScreen("challenge")}
+            style={styles.challengeLink}
+          >
+            <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -100,29 +114,50 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  title: {
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backButtonContainer: {
+    width: 40,
+  },
+  backButtonSpacer: {
+    width: 40,
+  },
+  backButton: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeXL,
-    color: THEME.textBright,
-    textShadowColor: THEME.textBright,
+    color: THEME.accent,
+  },
+  title: {
+    flex: 1,
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeXL,
+    color: "#ffffff",
+    textShadowColor: "#ffffff",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
+    textAlign: "center",
   },
   subtitle: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
     marginTop: 4,
-  },
-  backButton: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
-    color: THEME.accent,
-    marginBottom: 8,
+    textAlign: "center",
   },
   spectrumContainer: {
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: THEME.border,
+  },
+  challengeLink: {
+    alignItems: "center",
+    paddingBottom: 24,
+  },
+  challengeText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.accentDim,
   },
 });

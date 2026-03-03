@@ -7,10 +7,9 @@ import { hexToRgb } from "../utils/color";
 
 interface HexDisplayProps {
   hex: string;
-  onChallenge?: () => void;
 }
 
-export const HexDisplay: React.FC<HexDisplayProps> = ({ hex, onChallenge }) => {
+export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
   const [copied, setCopied] = useState(false);
   const rgb = hexToRgb(hex);
 
@@ -52,12 +51,6 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex, onChallenge }) => {
         </Text>
       </TouchableOpacity>
 
-      {/* Challenge link — subtle, secondary */}
-      {onChallenge && (
-        <TouchableOpacity onPress={onChallenge} style={styles.challengeLink}>
-          <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
@@ -123,14 +116,5 @@ const styles = StyleSheet.create({
   },
   copyTextActive: {
     color: THEME.bg,
-  },
-  challengeLink: {
-    marginTop: 16,
-    alignItems: "center",
-  },
-  challengeText: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
-    color: THEME.accentDim,
   },
 });

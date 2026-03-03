@@ -73,23 +73,24 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
     <SafeAreaView style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={styles.backButton}>{"<"}</Text>
-        </TouchableOpacity>
-        <View style={styles.headerRow}>
+        <View style={styles.titleRow}>
+          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
+            <Text style={styles.backButton}>{"<"}</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>CHALLENGE</Text>
-          {bestStreak > 0 && (
-            <Text style={styles.streakText}>BEST:{bestStreak}</Text>
-          )}
+          <View style={styles.backButtonSpacer} />
         </View>
+        {bestStreak > 0 && (
+          <Text style={styles.streakText}>BEST:{bestStreak}</Text>
+        )}
       </View>
 
       {/* Target */}
       <View style={styles.targetSection}>
-        <Text style={styles.targetLabel}>FIND THIS COLOR</Text>
         <View style={styles.targetRow}>
           <View style={[styles.targetSwatch, { backgroundColor: targetHex }]} />
-          <View>
+          <View style={styles.targetInfo}>
+            <Text style={styles.targetLabel}>FIND THIS COLOR</Text>
             <Text style={styles.targetHex}>{targetHex}</Text>
             <Text style={styles.targetRgb}>
               R:{targetRgb.r} G:{targetRgb.g} B:{targetRgb.b}
@@ -128,12 +129,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
                   styles.meterFill,
                   {
                     width: `${distancePercent}%`,
-                    backgroundColor:
-                      distancePercent > 80
-                        ? THEME.textBright
-                        : distancePercent > 50
-                        ? "#ffaa00"
-                        : THEME.accent,
+                    backgroundColor: THEME.textDim,
                   },
                 ]}
               />
@@ -142,6 +138,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
           </View>
         )}
       </View>
+
     </SafeAreaView>
   );
 };
@@ -154,46 +151,54 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 32,
   },
-  headerRow: {
+  titleRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+  },
+  backButtonContainer: {
+    width: 40,
+  },
+  backButtonSpacer: {
+    width: 40,
   },
   backButton: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
-    color: THEME.accent,
-    marginBottom: 8,
+    fontSize: THEME.fontSizeXL,
+    color: THEME.textDim,
   },
   title: {
+    flex: 1,
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeLarge,
-    color: THEME.textBright,
-    textShadowColor: THEME.textBright,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    fontSize: THEME.fontSizeXL,
+    color: THEME.textDim,
+    textAlign: "center",
   },
   streakText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
+    textAlign: "center",
+    marginTop: 4,
   },
   targetSection: {
     paddingHorizontal: 20,
     paddingBottom: 10,
   },
+  targetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  targetInfo: {
+    flex: 1,
+    gap: 8,
+  },
   targetLabel: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
-    marginBottom: 8,
-  },
-  targetRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
   },
   targetSwatch: {
     width: 48,
@@ -204,13 +209,12 @@ const styles = StyleSheet.create({
   targetHex: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeLarge,
-    color: "#ffffff",
+    color: THEME.text,
   },
   targetRgb: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
-    marginTop: 2,
   },
   spectrumContainer: {
     borderTopWidth: 1,
@@ -218,7 +222,6 @@ const styles = StyleSheet.create({
     borderColor: THEME.border,
   },
   statusSection: {
-    flex: 1,
     paddingHorizontal: 20,
     paddingTop: 12,
   },
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
   meterValue: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
-    color: THEME.text,
+    color: THEME.textDim,
   },
   meterTrack: {
     height: 8,
@@ -260,33 +263,30 @@ const styles = StyleSheet.create({
   matchText: {
     fontFamily: THEME.fontFamily,
     fontSize: 24,
-    color: THEME.textBright,
-    textShadowColor: THEME.textBright,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    color: THEME.text,
     marginBottom: 8,
   },
   scoreText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
-    color: THEME.text,
+    color: THEME.textDim,
     marginBottom: 4,
   },
   streakCounter: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
-    color: THEME.accent,
+    color: THEME.textDim,
     marginBottom: 16,
   },
   nextButton: {
     borderWidth: 2,
-    borderColor: THEME.accent,
+    borderColor: THEME.textDim,
     paddingVertical: 12,
     paddingHorizontal: 40,
   },
   nextText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
-    color: THEME.accent,
+    color: THEME.textDim,
   },
 });
