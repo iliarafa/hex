@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   backButton: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeXL,
-    color: THEME.accent,
+    color: THEME.textDim,
   },
   title: {
     flex: 1,
@@ -158,6 +158,6 @@ const styles = StyleSheet.create({
   challengeText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
-    color: THEME.accentDim,
+    color: THEME.textDim,
   },
 });

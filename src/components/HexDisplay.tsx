@@ -85,10 +85,7 @@ const styles = StyleSheet.create({
   hexText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeXL,
-    color: THEME.textBright,
-    textShadowColor: THEME.textBright,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    color: THEME.text,
   },
   rgbRow: {
     flexDirection: "row",
@@ -102,17 +99,17 @@ const styles = StyleSheet.create({
   },
   copyButton: {
     borderWidth: 2,
-    borderColor: THEME.accent,
+    borderColor: THEME.text,
     paddingVertical: 12,
     alignItems: "center",
   },
   copyButtonActive: {
-    backgroundColor: THEME.accent,
+    backgroundColor: THEME.text,
   },
   copyText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
-    color: THEME.accent,
+    color: THEME.text,
   },
   copyTextActive: {
     color: THEME.bg,
