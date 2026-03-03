@@ -1,17 +1,19 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   useFonts,
   PressStart2P_400Regular,
 } from "@expo-google-fonts/press-start-2p";
+import { LandingScreen } from "./src/components/LandingScreen";
 import { ColorSpectrum } from "./src/components/ColorSpectrum";
 import { HexDisplay } from "./src/components/HexDisplay";
 import { THEME } from "./src/constants/theme";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
+  const [screen, setScreen] = useState<"landing" | "picker">("landing");
   const [hex, setHex] = useState("#00FF41");
 
   const handleColorChange = useCallback(
@@ -29,6 +31,15 @@ export default function App() {
     );
   }
 
+  if (screen === "landing") {
+    return (
+      <GestureHandlerRootView style={styles.root}>
+        <StatusBar style="light" />
+        <LandingScreen onStart={() => setScreen("picker")} />
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.root}>
@@ -36,6 +47,9 @@ export default function App() {
 
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => setScreen("landing")}>
+            <Text style={styles.backButton}>{"<"}</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>HEX</Text>
           <Text style={styles.subtitle}>COLOR PICKER</Text>
         </View>
@@ -81,6 +95,12 @@ const styles = StyleSheet.create({
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
     marginTop: 4,
+  },
+  backButton: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.accent,
+    marginBottom: 8,
   },
   spectrumContainer: {
     borderTopWidth: 1,
