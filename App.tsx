@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -54,23 +54,28 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.root}>
         <StatusBar style="light" />
+        <ScrollView
+          style={styles.root}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setScreen("landing")}>
+              <Text style={styles.backButton}>{"<"}</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>HEX</Text>
+            <Text style={styles.subtitle}>COLOR PICKER</Text>
+          </View>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => setScreen("landing")}>
-            <Text style={styles.backButton}>{"<"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>HEX</Text>
-          <Text style={styles.subtitle}>COLOR PICKER</Text>
-        </View>
+          {/* Spectrum */}
+          <View style={styles.spectrumContainer}>
+            <ColorSpectrum height={340} onColorChange={handleColorChange} />
+          </View>
 
-        {/* Spectrum */}
-        <View style={styles.spectrumContainer}>
-          <ColorSpectrum height={380} onColorChange={handleColorChange} />
-        </View>
-
-        {/* Result */}
-        <HexDisplay hex={hex} onChallenge={() => setScreen("challenge")} />
+          {/* Result */}
+          <HexDisplay hex={hex} onChallenge={() => setScreen("challenge")} />
+        </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -80,6 +85,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: THEME.bg,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   loading: {
     flex: 1,

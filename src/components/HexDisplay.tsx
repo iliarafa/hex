@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   challengeText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.accentDim,
   },
 });
