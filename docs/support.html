@@ -4,43 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HEX - Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: "Press Start 2P", monospace;
             max-width: 700px;
             margin: 0 auto;
             padding: 40px 20px;
             background: #0a0a0a;
-            color: #c0c0c0;
-            line-height: 1.6;
+            color: #c0ffc0;
+            line-height: 2.2;
         }
-        h1 { color: #ffffff; font-size: 24px; }
-        h2 { color: #e0e0e0; font-size: 18px; margin-top: 32px; }
-        a { color: #4a9a4a; }
+        h1 {
+            color: #00ff41;
+            font-size: 20px;
+            margin-bottom: 32px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        h2 {
+            color: #c0ffc0;
+            font-size: 12px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+        h3 {
+            color: #4a6a4a;
+            font-size: 10px;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        p {
+            font-size: 10px;
+            color: #4a6a4a;
+            line-height: 2.4;
+        }
+        a {
+            color: #00ff41;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 6px #00ff41;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        li {
+            font-size: 10px;
+            color: #4a6a4a;
+            line-height: 2.4;
+            padding-left: 16px;
+            position: relative;
+        }
+        li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: #4a6a4a;
+        }
+        strong {
+            color: #c0ffc0;
+            font-weight: normal;
+        }
+        .back {
+            display: inline-block;
+            margin-bottom: 24px;
+            font-size: 10px;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid #2a3a2a;
+            margin: 32px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>HEX - Support</h1>
+    <a href="index.html" class="back">&lt; BACK</a>
+    <h1>SUPPORT</h1>
 
-    <h2>Contact</h2>
-    <p>For questions, feedback, or bug reports, reach out via email:</p>
+    <h2>CONTACT</h2>
+    <p>For questions, feedback, or bug reports:</p>
     <p><a href="mailto:iliasr@me.com">iliasr@me.com</a></p>
 
-    <h2>How to Use HEX</h2>
+    <hr class="divider">
 
-    <h3>Color Picker</h3>
+    <h2>HOW TO USE</h2>
+
+    <h3>COLOR PICKER</h3>
     <p>Drag your finger across the color grid to select a color. The hex code and RGB values update in real time. Tap the copy button to save the hex code to your clipboard.</p>
 
-    <h3>Challenge Mode</h3>
+    <h3>CHALLENGE MODE</h3>
     <p>A target color is displayed below the grid. Find it on the spectrum by dragging until the match meter reaches 100%. Track your accuracy, time, and streak across rounds.</p>
 
-    <h2>Troubleshooting</h2>
+    <hr class="divider">
+
+    <h2>TROUBLESHOOTING</h2>
     <ul>
         <li><strong>App not responding:</strong> Force close and reopen the app.</li>
         <li><strong>Copy not working:</strong> Ensure the app has clipboard access in your device settings.</li>
     </ul>
 
-    <h2>Privacy</h2>
+    <hr class="divider">
+
+    <h2>PRIVACY</h2>
     <p>HEX does not collect any personal data. See our full <a href="privacy.html">Privacy Policy</a>.</p>
 </body>
 </html>
