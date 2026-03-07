@@ -23,21 +23,18 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
   return (
     <View style={styles.container}>
       {/* Color swatch */}
-      <View style={styles.swatchRow}>
-        <View style={[styles.swatch, { backgroundColor: hex }]} />
-        <View style={styles.hexContainer}>
-          <Text style={styles.label}>HEX</Text>
-          <TouchableOpacity onPress={handleCopy} activeOpacity={0.7}>
-            <Text style={styles.hexText}>{hex}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <View style={[styles.swatch, { backgroundColor: hex }]} />
 
-      {/* RGB values */}
-      <View style={styles.rgbRow}>
-        <Text style={styles.rgbText}>R:{rgb.r}</Text>
-        <Text style={styles.rgbText}>G:{rgb.g}</Text>
-        <Text style={styles.rgbText}>B:{rgb.b}</Text>
+      {/* Hex + RGB info row */}
+      <View style={styles.infoRow}>
+        <TouchableOpacity onPress={handleCopy} activeOpacity={0.7}>
+          <Text style={styles.hexText}>{hex}</Text>
+        </TouchableOpacity>
+        <View style={styles.rgbRow}>
+          <Text style={styles.rgbText}>R:{rgb.r}</Text>
+          <Text style={styles.rgbText}>G:{rgb.g}</Text>
+          <Text style={styles.rgbText}>B:{rgb.b}</Text>
+        </View>
       </View>
 
       {/* Copy button */}
@@ -58,29 +55,22 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 32,
+    paddingBottom: 16,
     backgroundColor: THEME.bg,
   },
-  swatchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
   swatch: {
-    width: 56,
-    height: 56,
+    width: "100%",
+    height: 64,
     borderWidth: 2,
     borderColor: THEME.border,
+    marginBottom: 12,
   },
-  hexContainer: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  label: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
-    marginBottom: 4,
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   hexText: {
     fontFamily: THEME.fontFamily,
@@ -89,12 +79,11 @@ const styles = StyleSheet.create({
   },
   rgbRow: {
     flexDirection: "row",
-    gap: 20,
-    marginBottom: 16,
+    gap: 16,
   },
   rgbText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
+    fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
   },
   copyButton: {
