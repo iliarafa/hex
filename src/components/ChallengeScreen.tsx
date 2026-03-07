@@ -45,19 +45,15 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack, mode }
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-            <Text style={styles.backButton}>{"<"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>CHALLENGE</Text>
-          <View style={styles.backButtonSpacer} />
-        </View>
-        <Text style={styles.subtitle}>
-          {mode === "single" ? "SINGLE HEX" : "MULTI HEX"}
-        </Text>
+        <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
+          <Text style={styles.backButton}>{"<"}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.gridContainer}>
+        <Text style={styles.title}>
+          {mode === "single" ? "SINGLE HEX" : "MULTI HEX"}
+        </Text>
         <PuzzleGrid
           tiles={tiles}
           onTilesChange={setTiles}
@@ -92,14 +88,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   backButtonContainer: {
-    width: 40,
-  },
-  backButtonSpacer: {
     width: 40,
   },
   backButton: {
@@ -108,11 +97,14 @@ const styles = StyleSheet.create({
     color: THEME.textDim,
   },
   title: {
-    flex: 1,
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeXL,
-    color: THEME.textDim,
+    fontSize: 24,
+    color: THEME.text,
     textAlign: "center",
+    textShadowColor: "rgba(255,255,255,0.6)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+    marginBottom: 24,
   },
   subtitle: {
     fontFamily: THEME.fontFamily,
@@ -133,7 +125,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
+    fontSize: 24,
     color: THEME.textDim,
   },
   solvedContainer: {
@@ -147,7 +139,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
+    fontSize: 24,
     color: THEME.textDim,
     marginBottom: 16,
   },

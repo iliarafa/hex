@@ -4,8 +4,19 @@ import { THEME } from "../constants/theme";
 
 interface ModeSelectScreenProps {
   onBack: () => void;
-  onSelect: (mode: "picker" | "single" | "multi") => void;
+  onSelect: (mode: "picker" | "single" | "multi" | "enterHex") => void;
 }
+
+const MODES: {
+  key: "picker" | "single" | "multi" | "enterHex";
+  label: string;
+  desc: string[];
+}[] = [
+  { key: "picker", label: "HEX FINDER", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
+  { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
+  { key: "multi", label: "MULTI HEX", desc: ["SORT 8 DIFFERENT", "COLORS"] },
+  { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
+];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect }) => {
   return (
@@ -21,30 +32,45 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSe
         <Text style={styles.subtitle}>CHOOSE MODE</Text>
       </View>
 
-      <View style={styles.modeContainer}>
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() => onSelect("picker")}
-        >
-          <Text style={styles.modeTitle}>HEX FINDER</Text>
-          <Text style={styles.modeDesc}>EXPLORE THE{"\n"}COLOR SPECTRUM</Text>
-        </TouchableOpacity>
+      <View style={styles.treeContainer}>
+        <Text style={styles.treeRoot}>HEX</Text>
+        <View style={styles.branchRow}>
+          <Text style={styles.treeLine}>{"│"}</Text>
+        </View>
+        <View style={styles.branchRow}>
+          <Text style={styles.treeLine}>{"│"}</Text>
+        </View>
 
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() => onSelect("single")}
-        >
-          <Text style={styles.modeTitle}>SINGLE HEX</Text>
-          <Text style={styles.modeDesc}>SORT 8 SHADES{"\n"}OF ONE COLOR</Text>
-        </TouchableOpacity>
+        {MODES.map((mode, i) => {
+          const isLast = i === MODES.length - 1;
+          const branch = isLast ? "└── " : "├── ";
+          const cont = isLast ? "    " : "│   ";
 
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() => onSelect("multi")}
-        >
-          <Text style={styles.modeTitle}>MULTI HEX</Text>
-          <Text style={styles.modeDesc}>SORT 8 DIFFERENT{"\n"}COLORS</Text>
-        </TouchableOpacity>
+          return (
+            <React.Fragment key={mode.key}>
+              <TouchableOpacity
+                style={styles.branchRow}
+                onPress={() => onSelect(mode.key)}
+              >
+                <Text style={styles.treeLine}>{branch}</Text>
+                <Text style={styles.branchLabel}>{mode.label}</Text>
+              </TouchableOpacity>
+
+              {mode.desc.map((line, j) => (
+                <View style={styles.branchRow} key={j}>
+                  <Text style={styles.treeLine}>{cont}</Text>
+                  <Text style={styles.branchDesc}>{line}</Text>
+                </View>
+              ))}
+
+              {!isLast && (
+                <View style={styles.branchRow}>
+                  <Text style={styles.treeLine}>{"│"}</Text>
+                </View>
+              )}
+            </React.Fragment>
+          );
+        })}
       </View>
     </View>
   );
@@ -92,30 +118,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 4,
   },
-  modeContainer: {
+  treeContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    gap: 20,
+    paddingHorizontal: 24,
   },
-  modeButton: {
-    borderWidth: 2,
-    borderColor: THEME.border,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    alignItems: "center",
-  },
-  modeTitle: {
+  treeRoot: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeLarge,
+    fontSize: 24,
     color: THEME.text,
     marginBottom: 8,
   },
-  modeDesc: {
+  branchRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  treeLine: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
+    fontSize: THEME.fontSizeLarge,
     color: THEME.textDim,
-    textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 28,
+  },
+  branchLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeLarge,
+    color: THEME.text,
+    lineHeight: 28,
+  },
+  branchDesc: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.textDim,
+    lineHeight: 28,
   },
 });
