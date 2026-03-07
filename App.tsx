@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -16,6 +16,7 @@ export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
   const [screen, setScreen] = useState<"landing" | "picker" | "challenge">("landing");
   const [hex, setHex] = useState("#00FF41");
+  const [spectrumHeight, setSpectrumHeight] = useState(0);
 
   const handleColorChange = useCallback(
     (newHex: string, _h: number, _s: number, _l: number) => {
@@ -38,11 +39,7 @@ export default function App() {
     }
 
     return (
-      <ScrollView
-        style={styles.root}
-        contentContainerStyle={styles.scrollContent}
-        bounces={false}
-      >
+      <View style={styles.root}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleRow}>
@@ -56,15 +53,17 @@ export default function App() {
         </View>
 
         {/* Spectrum */}
-        <View style={styles.spectrumContainer}>
-          <ColorSpectrum height={340} onColorChange={handleColorChange} />
+        <View
+          style={styles.spectrumContainer}
+          onLayout={(e) => setSpectrumHeight(e.nativeEvent.layout.height)}
+        >
+          {spectrumHeight > 0 && (
+            <ColorSpectrum height={spectrumHeight} onColorChange={handleColorChange} />
+          )}
         </View>
 
         {/* Result */}
         <HexDisplay hex={hex} />
-
-        {/* Spacer */}
-        <View style={{ flex: 1 }} />
 
         {/* Challenge link at bottom */}
         <TouchableOpacity
@@ -73,7 +72,7 @@ export default function App() {
         >
           <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     );
   };
 
@@ -96,9 +95,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: THEME.bg,
-  },
-  scrollContent: {
-    flexGrow: 1,
   },
   loading: {
     flex: 1,
@@ -144,13 +140,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   spectrumContainer: {
+    flex: 1,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: THEME.border,
   },
   challengeLink: {
     alignItems: "center",
-    paddingBottom: 24,
+    paddingVertical: 12,
   },
   challengeText: {
     fontFamily: THEME.fontFamily,

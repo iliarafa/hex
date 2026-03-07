@@ -15,7 +15,7 @@ export const THEME = {
 } as const;
 
 export const SPECTRUM = {
-  pixelSize: 8,
+  pixelSize: 6,
   crosshairColor: "#ffffff",
   crosshairGap: 6,
   crosshairLength: 16,

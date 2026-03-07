@@ -23,7 +23,7 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
   return (
     <View style={styles.container}>
       {/* Color swatch */}
-      <View style={[styles.swatch, { backgroundColor: hex }]} />
+      <View style={[styles.swatch, { backgroundColor: hex, borderColor: hex }]} />
 
       {/* Hex + RGB info row */}
       <View style={styles.infoRow}>
@@ -55,7 +55,7 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 16,
     backgroundColor: THEME.bg,
   },
