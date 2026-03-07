@@ -10,11 +10,14 @@ import { LandingScreen } from "./src/components/LandingScreen";
 import { ColorSpectrum } from "./src/components/ColorSpectrum";
 import { HexDisplay } from "./src/components/HexDisplay";
 import { ChallengeScreen } from "./src/components/ChallengeScreen";
+import { ModeSelectScreen } from "./src/components/ModeSelectScreen";
 import { THEME } from "./src/constants/theme";
+import { PuzzleMode } from "./src/utils/puzzle";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
-  const [screen, setScreen] = useState<"landing" | "picker" | "challenge">("landing");
+  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge">("landing");
+  const [challengeMode, setChallengeMode] = useState<PuzzleMode>("single");
   const [hex, setHex] = useState("#00FF41");
   const [spectrumHeight, setSpectrumHeight] = useState(0);
 
@@ -34,8 +37,24 @@ export default function App() {
   }
 
   const renderScreen = () => {
+    if (screen === "mode") {
+      return (
+        <ModeSelectScreen
+          onBack={() => setScreen("landing")}
+          onSelect={(mode) => {
+            if (mode === "picker") {
+              setScreen("picker");
+            } else {
+              setChallengeMode(mode);
+              setScreen("challenge");
+            }
+          }}
+        />
+      );
+    }
+
     if (screen === "challenge") {
-      return <ChallengeScreen onBack={() => setScreen("picker")} />;
+      return <ChallengeScreen onBack={() => setScreen("mode")} mode={challengeMode} />;
     }
 
     return (
@@ -43,7 +62,7 @@ export default function App() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <TouchableOpacity onPress={() => setScreen("landing")} style={styles.backButtonContainer}>
+            <TouchableOpacity onPress={() => setScreen("mode")} style={styles.backButtonContainer}>
               <Text style={styles.backButton}>{"<"}</Text>
             </TouchableOpacity>
             <Text style={styles.title}>HEX</Text>
@@ -64,14 +83,6 @@ export default function App() {
 
         {/* Result */}
         <HexDisplay hex={hex} />
-
-        {/* Challenge link at bottom */}
-        <TouchableOpacity
-          onPress={() => setScreen("challenge")}
-          style={styles.challengeLink}
-        >
-          <Text style={styles.challengeText}>CHALLENGE MODE &gt;</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -84,7 +95,7 @@ export default function App() {
       </SafeAreaView>
       {screen === "landing" && (
         <View style={StyleSheet.absoluteFill}>
-          <LandingScreen onStart={() => setScreen("picker")} />
+          <LandingScreen onStart={() => setScreen("mode")} />
         </View>
       )}
     </GestureHandlerRootView>
@@ -144,14 +155,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: THEME.border,
-  },
-  challengeLink: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  challengeText: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
-    color: THEME.textDim,
   },
 });

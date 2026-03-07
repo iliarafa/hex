@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions } from "react-native";
 import * as Haptics from "expo-haptics";
 import { DraggableTile } from "./DraggableTile";
 import { Tile, isSolved } from "../utils/puzzle";
+import { playSound } from "../utils/sounds";
 
 interface PuzzleGridProps {
   tiles: Tile[];
@@ -16,8 +17,10 @@ export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
   onSolved,
 }) => {
   const { width } = useWindowDimensions();
-  const gridSize = width - 40; // 20px padding each side
-  const tileSize = gridSize / 8;
+  const gridWidth = width - 40; // 20px padding each side
+  const tileWidth = gridWidth / 4;
+  const tileHeight = tileWidth / 2;
+  const gridHeight = tileHeight * 8;
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const handleDragStart = useCallback((index: number) => {
@@ -26,39 +29,50 @@ export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
 
   const handleDragEnd = useCallback(
     (index: number, translationX: number, translationY: number) => {
-      // Calculate which tile position the drag ended on
-      const colOffset = Math.round(translationX / tileSize);
-      const rowOffset = Math.round(translationY / tileSize);
+      const colOffset = Math.round(translationX / tileWidth);
+      const rowOffset = Math.round(translationY / tileHeight);
 
-      const fromRow = Math.floor(index / 8);
-      const fromCol = index % 8;
+      const fromRow = Math.floor(index / 4);
+      const fromCol = index % 4;
       const toRow = Math.max(0, Math.min(7, fromRow + rowOffset));
-      const toCol = Math.max(0, Math.min(7, fromCol + colOffset));
-      const toIndex = toRow * 8 + toCol;
+      const toCol = Math.max(0, Math.min(3, fromCol + colOffset));
+      const toIndex = toRow * 4 + toCol;
 
-      if (toIndex !== index && toIndex >= 0 && toIndex < 64) {
+      if (toIndex !== index && toIndex >= 0 && toIndex < 32) {
         const newTiles = [...tiles];
         [newTiles[index], newTiles[toIndex]] = [newTiles[toIndex], newTiles[index]];
         onTilesChange(newTiles);
 
         if (isSolved(newTiles)) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          playSound("solved");
           onSolved();
+        } else {
+          // Check if any affected row just became complete
+          const affectedRows = new Set([Math.floor(index / 4), Math.floor(toIndex / 4)]);
+          for (const row of affectedRows) {
+            const rowTiles = newTiles.slice(row * 4, row * 4 + 4);
+            if (rowTiles.every((t) => t.targetRow === rowTiles[0].targetRow)) {
+              playSound("rowComplete");
+              break;
+            }
+          }
         }
       }
 
       setDragIndex(null);
     },
-    [tiles, tileSize, onTilesChange, onSolved]
+    [tiles, tileWidth, tileHeight, onTilesChange, onSolved]
   );
 
   return (
-    <View style={[styles.grid, { width: gridSize, height: gridSize }]}>
+    <View style={[styles.grid, { width: gridWidth, height: gridHeight }]}>
       {tiles.map((tile, index) => (
         <DraggableTile
           key={tile.id}
           color={tile.color}
-          size={tileSize}
+          width={tileWidth}
+          height={tileHeight}
           onDragStart={() => handleDragStart(index)}
           onDragEnd={(tx, ty) => handleDragEnd(index, tx, ty)}
         />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 import { PuzzleGrid } from "./PuzzleGrid";
@@ -6,27 +6,26 @@ import { generatePuzzle, Tile, PuzzleMode } from "../utils/puzzle";
 
 interface ChallengeScreenProps {
   onBack: () => void;
+  mode: PuzzleMode;
 }
 
-export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
-  const [mode, setMode] = useState<PuzzleMode | null>(null);
-  const [tiles, setTiles] = useState<Tile[]>([]);
+export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack, mode }) => {
+  const [tiles, setTiles] = useState<Tile[]>(() => generatePuzzle(mode));
   const [solved, setSolved] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef(0);
+  const startTimeRef = useRef(Date.now());
 
-  const startGame = useCallback((selectedMode: PuzzleMode) => {
-    setMode(selectedMode);
-    setTiles(generatePuzzle(selectedMode));
+  const startGame = useCallback(() => {
+    setTiles(generatePuzzle(mode));
     setSolved(false);
     setElapsed(0);
     startTimeRef.current = Date.now();
-  }, []);
+  }, [mode]);
 
   // Timer
   useEffect(() => {
-    if (mode && !solved) {
+    if (!solved) {
       timerRef.current = setInterval(() => {
         setElapsed((Date.now() - startTimeRef.current) / 1000);
       }, 100);
@@ -34,7 +33,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [mode, solved]);
+  }, [solved]);
 
   const handleSolved = useCallback(() => {
     setSolved(true);
@@ -42,55 +41,12 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
     setElapsed((Date.now() - startTimeRef.current) / 1000);
   }, []);
 
-  const handleNewGame = () => {
-    setMode(null);
-    setTiles([]);
-    setSolved(false);
-    setElapsed(0);
-  };
-
-  // Mode selection screen
-  if (!mode) {
-    return (
-      <View style={styles.root}>
-        <View style={styles.header}>
-          <View style={styles.titleRow}>
-            <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-              <Text style={styles.backButton}>{"<"}</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>CHALLENGE</Text>
-            <View style={styles.backButtonSpacer} />
-          </View>
-          <Text style={styles.subtitle}>CHOOSE MODE</Text>
-        </View>
-
-        <View style={styles.modeContainer}>
-          <TouchableOpacity
-            style={styles.modeButton}
-            onPress={() => startGame("single")}
-          >
-            <Text style={styles.modeTitle}>SINGLE HEX</Text>
-            <Text style={styles.modeDesc}>SORT 8 SHADES{"\n"}OF ONE COLOR</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.modeButton}
-            onPress={() => startGame("multi")}
-          >
-            <Text style={styles.modeTitle}>MULTI HEX</Text>
-            <Text style={styles.modeDesc}>SORT 8 DIFFERENT{"\n"}COLORS</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
   // Game screen
   return (
     <View style={styles.root}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <TouchableOpacity onPress={handleNewGame} style={styles.backButtonContainer}>
+          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
             <Text style={styles.backButton}>{"<"}</Text>
           </TouchableOpacity>
           <Text style={styles.title}>CHALLENGE</Text>
@@ -114,7 +70,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
           <View style={styles.solvedContainer}>
             <Text style={styles.solvedText}>SOLVED!</Text>
             <Text style={styles.timeText}>{elapsed.toFixed(1)}s</Text>
-            <TouchableOpacity style={styles.newGameButton} onPress={handleNewGame}>
+            <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
               <Text style={styles.newGameText}>NEW GAME</Text>
             </TouchableOpacity>
           </View>
@@ -164,32 +120,6 @@ const styles = StyleSheet.create({
     color: THEME.textDim,
     textAlign: "center",
     marginTop: 4,
-  },
-  modeContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    gap: 20,
-  },
-  modeButton: {
-    borderWidth: 2,
-    borderColor: THEME.border,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    alignItems: "center",
-  },
-  modeTitle: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeLarge,
-    color: THEME.text,
-    marginBottom: 8,
-  },
-  modeDesc: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
-    textAlign: "center",
-    lineHeight: 16,
   },
   gridContainer: {
     flex: 1,

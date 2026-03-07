@@ -8,17 +8,20 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { playSound } from "../utils/sounds";
 
 interface DraggableTileProps {
   color: string;
-  size: number;
+  width: number;
+  height: number;
   onDragStart: () => void;
   onDragEnd: (translationX: number, translationY: number) => void;
 }
 
 export const DraggableTile: React.FC<DraggableTileProps> = ({
   color,
-  size,
+  width,
+  height,
   onDragStart,
   onDragEnd,
 }) => {
@@ -33,6 +36,7 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
       zIndex.value = 100;
       runOnJS(onDragStart)();
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
+      runOnJS(playSound)("lift");
     })
     .onChange((e) => {
       translateX.value = e.translationX;
@@ -45,6 +49,7 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
       scale.value = withSpring(1);
       zIndex.value = 0;
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+      runOnJS(playSound)("place");
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -60,7 +65,7 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
     <GestureDetector gesture={gesture}>
       <Animated.View
         style={[
-          { width: size, height: size, backgroundColor: color },
+          { width, height, backgroundColor: color },
           styles.tile,
           animatedStyle,
         ]}
@@ -70,8 +75,5 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
 };
 
 const styles = StyleSheet.create({
-  tile: {
-    borderWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.2)",
-  },
+  tile: {},
 });

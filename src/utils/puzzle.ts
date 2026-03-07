@@ -9,8 +9,8 @@ export interface Tile {
 }
 
 /**
- * Generate an 8x8 grid of tiles for the puzzle.
- * Returns 64 tiles in shuffled order.
+ * Generate an 8x4 grid of tiles for the puzzle.
+ * Returns 32 tiles in shuffled order.
  */
 export function generatePuzzle(mode: PuzzleMode): Tile[] {
   const tiles: Tile[] = [];
@@ -21,17 +21,18 @@ export function generatePuzzle(mode: PuzzleMode): Tile[] {
     const hue = Math.floor(Math.random() * 360);
     for (let row = 0; row < 8; row++) {
       const lightness = 15 + row * 10; // 15, 25, 35, 45, 55, 65, 75, 85
-      const color = hslToHex(hue, 100, lightness);
-      for (let col = 0; col < 8; col++) {
+      const color = hslToHex(hue, 60, lightness);
+      for (let col = 0; col < 4; col++) {
         tiles.push({ id: id++, color, targetRow: row });
       }
     }
   } else {
-    // 8 evenly spaced hues
+    // Random base hue, 8 closely-spaced hues within a ~60° arc
+    const baseHue = Math.floor(Math.random() * 360);
     for (let row = 0; row < 8; row++) {
-      const hue = row * 45; // 0, 45, 90, 135, 180, 225, 270, 315
-      const color = hslToHex(hue, 100, 50);
-      for (let col = 0; col < 8; col++) {
+      const hue = (baseHue + row * 8) % 360;
+      const color = hslToHex(hue, 55, 55);
+      for (let col = 0; col < 4; col++) {
         tiles.push({ id: id++, color, targetRow: row });
       }
     }
@@ -53,7 +54,7 @@ function shuffleTiles(tiles: Tile[]): Tile[] {
 /** Check if puzzle is solved: every row has tiles with the same targetRow */
 export function isSolved(tiles: Tile[]): boolean {
   for (let row = 0; row < 8; row++) {
-    const rowTiles = tiles.slice(row * 8, row * 8 + 8);
+    const rowTiles = tiles.slice(row * 4, row * 4 + 4);
     const firstTarget = rowTiles[0].targetRow;
     if (!rowTiles.every((t) => t.targetRow === firstTarget)) {
       return false;
