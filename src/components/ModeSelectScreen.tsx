@@ -12,7 +12,7 @@ const MODES: {
   label: string;
   desc: string[];
 }[] = [
-  { key: "picker", label: "HEX FINDER", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
+  { key: "picker", label: "FIND HEX", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
   { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
   { key: "multi", label: "MULTI HEX", desc: ["SORT 8 DIFFERENT", "COLORS"] },
   { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
@@ -21,17 +21,6 @@ const MODES: {
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect }) => {
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-            <Text style={styles.backButton}>{"<"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>HEX</Text>
-          <View style={styles.backButtonSpacer} />
-        </View>
-        <Text style={styles.subtitle}>CHOOSE MODE</Text>
-      </View>
-
       <View style={styles.treeContainer}>
         <Text style={styles.treeRoot}>HEX</Text>
         <View style={styles.branchRow}>
@@ -72,6 +61,12 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSe
           );
         })}
       </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={onBack}>
+          <Text style={styles.backText}>EXIT</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -81,42 +76,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.bg,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  titleRow: {
-    flexDirection: "row",
+  footer: {
+    paddingVertical: 24,
     alignItems: "center",
   },
-  backButtonContainer: {
-    width: 40,
-  },
-  backButtonSpacer: {
-    width: 40,
-  },
-  backButton: {
+  backText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeXL,
+    fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
-  },
-  title: {
-    flex: 1,
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeXL,
-    color: "#ffffff",
-    textShadowColor: "#ffffff",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
-    textAlign: "center",
-    marginTop: 4,
   },
   treeContainer: {
     flex: 1,
@@ -125,8 +92,11 @@ const styles = StyleSheet.create({
   },
   treeRoot: {
     fontFamily: THEME.fontFamily,
-    fontSize: 24,
-    color: THEME.text,
+    fontSize: 32,
+    color: "#ffffff",
+    textShadowColor: "rgba(255,255,255,0.6)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
     marginBottom: 8,
   },
   branchRow: {
