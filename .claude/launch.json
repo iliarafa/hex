@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-start",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--port", "8083"],
+      "port": 8083
+    },
+    {
+      "name": "expo-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8084"],
+      "port": 8084
+    },
+    {
+      "name": "expo-ios",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--ios", "--port", "8085"],
+      "port": 8085
+    }
+  ]
+}
