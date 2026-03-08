@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  runOnJS,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { THEME } from "../constants/theme";
 import { playSound } from "../utils/sounds";
@@ -105,6 +112,26 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
     setRemaining(GAME_DURATION);
   }, []);
 
+  const SWIPE_THRESHOLD = 50;
+  const translateX = useSharedValue(0);
+
+  const swipeGesture = Gesture.Pan()
+    .onChange((e) => {
+      translateX.value = e.translationX;
+    })
+    .onEnd((e) => {
+      if (e.translationX > SWIPE_THRESHOLD) {
+        runOnJS(handleAnswer)(true);
+      } else if (e.translationX < -SWIPE_THRESHOLD) {
+        runOnJS(handleAnswer)(false);
+      }
+      translateX.value = withSpring(0);
+    });
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
     <View style={styles.root}>
       <View style={styles.header}>
@@ -114,41 +141,69 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>MATCH HEX</Text>
-        <Text style={styles.question}>
-          DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
-        </Text>
+        <View style={styles.upperArea}>
+          <Text style={styles.title}>MATCH HEX</Text>
+          <Text style={styles.question}>
+            DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
+          </Text>
 
-        {/* Two cards side by side */}
-        <View style={styles.cardsRow}>
-          <View style={styles.card}>
-            <Text style={styles.cardWord}>{round.leftWord}</Text>
-            <Text style={styles.cardLabel}>MEANING</Text>
-          </View>
+          {!gameOver ? (
+            <GestureDetector gesture={swipeGesture}>
+              <Animated.View style={[animatedCardStyle, { width: "100%" }]}>
+                <View style={styles.cardsRow}>
+                  <View style={styles.card}>
+                    <Text style={styles.cardWord}>{round.leftWord}</Text>
+                    <Text style={styles.cardLabel}>MEANING</Text>
+                  </View>
 
-          <View style={styles.card}>
-            <Text style={[styles.cardWord, { color: round.rightTextColor }]}>
-              {round.rightWord}
-            </Text>
-            <Text style={styles.cardLabel}>TEXT COLOR</Text>
-          </View>
+                  <View style={styles.card}>
+                    <Text
+                      style={[
+                        styles.cardWord,
+                        { color: round.rightTextColor },
+                      ]}
+                    >
+                      {round.rightWord}
+                    </Text>
+                    <Text style={styles.cardLabel}>TEXT COLOR</Text>
+                  </View>
+                </View>
+              </Animated.View>
+            </GestureDetector>
+          ) : (
+            <View style={styles.cardsRow}>
+              <View style={styles.card}>
+                <Text style={styles.cardWord}>{round.leftWord}</Text>
+                <Text style={styles.cardLabel}>MEANING</Text>
+              </View>
+
+              <View style={styles.card}>
+                <Text
+                  style={[styles.cardWord, { color: round.rightTextColor }]}
+                >
+                  {round.rightWord}
+                </Text>
+                <Text style={styles.cardLabel}>TEXT COLOR</Text>
+              </View>
+            </View>
+          )}
         </View>
 
-        {/* YES / NO buttons */}
         {!gameOver && (
-          <View style={styles.buttonsRow}>
-            <TouchableOpacity
-              style={styles.answerButton}
-              onPress={() => handleAnswer(false)}
-            >
-              <Text style={styles.answerText}>NO</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.answerButton}
-              onPress={() => handleAnswer(true)}
-            >
-              <Text style={styles.answerText}>YES</Text>
-            </TouchableOpacity>
+          <View style={styles.swipeHintArea}>
+            <View style={styles.swipeHintRow}>
+              <View style={styles.swipeIndicator}>
+                <Text style={styles.swipeArrow}>{"<<"}</Text>
+                <Text style={styles.swipeLabel}>NO</Text>
+              </View>
+
+              <Text style={styles.swipePrompt}>SWIPE</Text>
+
+              <View style={styles.swipeIndicator}>
+                <Text style={styles.swipeArrow}>{">>"}</Text>
+                <Text style={styles.swipeLabel}>YES</Text>
+              </View>
+            </View>
           </View>
         )}
       </View>
@@ -193,9 +248,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: 20,
+  },
+  upperArea: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+  },
+  swipeHintArea: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontFamily: THEME.fontFamily,
@@ -215,13 +278,39 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 32,
   },
+  swipeHintRow: {
+    flexDirection: "row",
+    gap: 16,
+    width: "100%",
+  },
+  swipeIndicator: {
+    flex: 1,
+    flexBasis: 0,
+    alignItems: "center",
+    gap: 6,
+  },
+  swipeArrow: {
+    fontFamily: THEME.fontFamily,
+    fontSize: 24,
+    color: THEME.text,
+  },
+  swipeLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeLarge,
+    color: THEME.text,
+  },
+  swipePrompt: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+  },
   cardsRow: {
     flexDirection: "row",
     gap: 16,
-    marginBottom: 40,
   },
   card: {
     flex: 1,
+    flexBasis: 0,
     backgroundColor: THEME.bgSecondary,
     borderWidth: 1,
     borderColor: THEME.border,
@@ -238,21 +327,6 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
-  },
-  buttonsRow: {
-    flexDirection: "row",
-    gap: 24,
-  },
-  answerButton: {
-    borderWidth: 2,
-    borderColor: THEME.text,
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-  },
-  answerText: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeLarge,
-    color: THEME.text,
   },
   footer: {
     paddingHorizontal: 20,
