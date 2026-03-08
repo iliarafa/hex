@@ -5,6 +5,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  interpolateColor,
   runOnJS,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
@@ -97,8 +99,13 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         playSound("rowComplete");
         setScore((s) => s + 1);
+        glowOpacity.value = 1;
+        glowOpacity.value = withTiming(0, { duration: 400 });
       } else {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        playSound("wrong");
+        wrongGlowOpacity.value = 1;
+        wrongGlowOpacity.value = withTiming(0, { duration: 400 });
       }
       setRound(generateRound());
     },
@@ -114,22 +121,51 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
   const SWIPE_THRESHOLD = 50;
   const translateX = useSharedValue(0);
+  const glowOpacity = useSharedValue(0);
+  const wrongGlowOpacity = useSharedValue(0);
+
+  const answered = useSharedValue(false);
 
   const swipeGesture = Gesture.Pan()
+    .onBegin(() => {
+      answered.value = false;
+    })
     .onChange((e) => {
       translateX.value = e.translationX;
     })
-    .onEnd((e) => {
-      if (e.translationX > SWIPE_THRESHOLD) {
+    .onEnd(() => {
+      if (translateX.value > SWIPE_THRESHOLD && !answered.value) {
+        answered.value = true;
         runOnJS(handleAnswer)(true);
-      } else if (e.translationX < -SWIPE_THRESHOLD) {
+      } else if (translateX.value < -SWIPE_THRESHOLD && !answered.value) {
+        answered.value = true;
         runOnJS(handleAnswer)(false);
       }
       translateX.value = withSpring(0);
     });
 
-  const animatedCardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+  const correctGlowStyle = useAnimatedStyle(() => ({
+    shadowColor: "#00ff41",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 12 * glowOpacity.value,
+    shadowOpacity: glowOpacity.value,
+    borderColor: interpolateColor(
+      glowOpacity.value,
+      [0, 1],
+      [THEME.border, "#00ff41"]
+    ),
+  }));
+
+  const wrongGlowStyle = useAnimatedStyle(() => ({
+    shadowColor: "#FF4444",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 12 * wrongGlowOpacity.value,
+    shadowOpacity: wrongGlowOpacity.value,
+    borderColor: interpolateColor(
+      wrongGlowOpacity.value,
+      [0, 1],
+      [THEME.border, "#FF4444"]
+    ),
   }));
 
   return (
@@ -140,37 +176,60 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.upperArea}>
-          <Text style={styles.title}>MATCH HEX</Text>
-          <Text style={styles.question}>
-            DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
-          </Text>
+      {!gameOver ? (
+        <GestureDetector gesture={swipeGesture}>
+          <Animated.View style={styles.content}>
+            <View style={styles.upperArea}>
+              <Text style={styles.title}>MATCH HEX</Text>
+              <Text style={styles.question}>
+                DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
+              </Text>
 
-          {!gameOver ? (
-            <GestureDetector gesture={swipeGesture}>
-              <Animated.View style={[animatedCardStyle, { width: "100%" }]}>
-                <View style={styles.cardsRow}>
-                  <View style={styles.card}>
-                    <Text style={styles.cardWord}>{round.leftWord}</Text>
-                    <Text style={styles.cardLabel}>MEANING</Text>
-                  </View>
-
-                  <View style={styles.card}>
-                    <Text
-                      style={[
-                        styles.cardWord,
-                        { color: round.rightTextColor },
-                      ]}
-                    >
-                      {round.rightWord}
-                    </Text>
-                    <Text style={styles.cardLabel}>TEXT COLOR</Text>
-                  </View>
+              <View style={styles.cardsRow}>
+                <View style={styles.card}>
+                  <Text style={styles.cardWord}>{round.leftWord}</Text>
+                  <Text style={styles.cardLabel}>MEANING</Text>
                 </View>
-              </Animated.View>
-            </GestureDetector>
-          ) : (
+
+                <Animated.View style={[styles.card, correctGlowStyle, wrongGlowStyle]}>
+                  <Text
+                    style={[
+                      styles.cardWord,
+                      { color: round.rightTextColor },
+                    ]}
+                  >
+                    {round.rightWord}
+                  </Text>
+                  <Text style={styles.cardLabel}>TEXT COLOR</Text>
+                </Animated.View>
+              </View>
+            </View>
+
+            <View style={styles.swipeHintArea}>
+              <View style={styles.swipeHintRow}>
+                <View style={styles.swipeIndicator}>
+                  <Text style={styles.swipeArrow}>{"<<"}</Text>
+                  <Text style={styles.swipeLabel}>NO</Text>
+                </View>
+
+                <Text style={styles.swipePrompt}>SWIPE</Text>
+
+                <View style={styles.swipeIndicator}>
+                  <Text style={styles.swipeArrow}>{">>"}</Text>
+                  <Text style={styles.swipeLabel}>YES</Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        </GestureDetector>
+      ) : (
+        <View style={styles.content}>
+          <View style={styles.upperArea}>
+            <Text style={styles.title}>MATCH HEX</Text>
+            <Text style={styles.question}>
+              DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
+            </Text>
+
             <View style={styles.cardsRow}>
               <View style={styles.card}>
                 <Text style={styles.cardWord}>{round.leftWord}</Text>
@@ -186,43 +245,25 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
                 <Text style={styles.cardLabel}>TEXT COLOR</Text>
               </View>
             </View>
-          )}
-        </View>
+          </View>
 
-        {!gameOver && (
           <View style={styles.swipeHintArea}>
-            <View style={styles.swipeHintRow}>
-              <View style={styles.swipeIndicator}>
-                <Text style={styles.swipeArrow}>{"<<"}</Text>
-                <Text style={styles.swipeLabel}>NO</Text>
-              </View>
-
-              <Text style={styles.swipePrompt}>SWIPE</Text>
-
-              <View style={styles.swipeIndicator}>
-                <Text style={styles.swipeArrow}>{">>"}</Text>
-                <Text style={styles.swipeLabel}>YES</Text>
-              </View>
+            <View style={styles.gameOverContainer}>
+              <Text style={styles.timeUpText}>TIME'S UP!</Text>
+              <Text style={styles.scoreResult}>SCORE: {score}</Text>
+              <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
+                <Text style={styles.newGameButtonText}>NEW GAME</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        )}
-      </View>
+        </View>
+      )}
 
-      <View style={styles.footer}>
-        {gameOver ? (
-          <View style={styles.gameOverContainer}>
-            <Text style={styles.timeUpText}>TIME'S UP!</Text>
-            <Text style={styles.scoreResult}>SCORE: {score}</Text>
-            <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
-              <Text style={styles.newGameButtonText}>NEW GAME</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.statsRow}>
-            <Text style={styles.scoreLive}>SCORE: {score}</Text>
-            <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
-          </View>
-        )}
+      <View style={[styles.footer, gameOver && { opacity: 0 }]}>
+        <View style={styles.statsRow}>
+          <Text style={styles.scoreLive}>SCORE: {score}</Text>
+          <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
+        </View>
       </View>
     </View>
   );

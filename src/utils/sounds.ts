@@ -5,6 +5,7 @@ const soundFiles = {
   place: require("../../assets/sounds/place.wav"),
   rowComplete: require("../../assets/sounds/row-complete.wav"),
   solved: require("../../assets/sounds/solved.wav"),
+  wrong: require("../../assets/sounds/wrong.wav"),
 };
 
 type SoundName = keyof typeof soundFiles;
