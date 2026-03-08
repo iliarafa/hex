@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withSequence,
   interpolateColor,
   runOnJS,
 } from "react-native-reanimated";
@@ -64,6 +65,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 }) => {
   const [round, setRound] = useState<Round>(() => generateRound());
   const [score, setScore] = useState(0);
+  const [total, setTotal] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [remaining, setRemaining] = useState(GAME_DURATION);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -94,17 +96,16 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
     (playerAnswer: boolean) => {
       if (gameOver) return;
 
+      setTotal((t) => t + 1);
       if (playerAnswer === round.answer) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         playSound("rowComplete");
         setScore((s) => s + 1);
-        glowOpacity.value = 1;
-        glowOpacity.value = withTiming(0, { duration: 400 });
+        glowOpacity.value = withSequence(withTiming(1, { duration: 0 }), withTiming(0, { duration: 400 }));
       } else {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         playSound("wrong");
-        wrongGlowOpacity.value = 1;
-        wrongGlowOpacity.value = withTiming(0, { duration: 400 });
+        wrongGlowOpacity.value = withSequence(withTiming(1, { duration: 0 }), withTiming(0, { duration: 400 }));
       }
       setRound(generateRound());
     },
@@ -113,6 +114,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
   const startGame = useCallback(() => {
     setScore(0);
+    setTotal(0);
     setRound(generateRound());
     setGameOver(false);
     setRemaining(GAME_DURATION);
@@ -249,7 +251,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
           <View style={styles.swipeHintArea}>
             <View style={styles.gameOverContainer}>
               <Text style={styles.timeUpText}>TIME'S UP!</Text>
-              <Text style={styles.scoreResult}>SCORE: {score}</Text>
+              <Text style={styles.scoreResult}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
               <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
                 <Text style={styles.newGameButtonText}>NEW GAME</Text>
               </TouchableOpacity>
@@ -260,7 +262,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
       <View style={[styles.footer, gameOver && { opacity: 0 }]}>
         <View style={styles.statsRow}>
-          <Text style={styles.scoreLive}>SCORE: {score}</Text>
+          <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
           <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
         </View>
       </View>
@@ -390,18 +392,17 @@ const styles = StyleSheet.create({
   },
   gameOverContainer: {
     alignItems: "center",
+    gap: 20,
   },
   timeUpText: {
     fontFamily: THEME.fontFamily,
     fontSize: 24,
     color: THEME.accent,
-    marginBottom: 4,
   },
   scoreResult: {
     fontFamily: THEME.fontFamily,
     fontSize: 24,
     color: THEME.textDim,
-    marginBottom: 16,
   },
   newGameButton: {
     borderWidth: 2,

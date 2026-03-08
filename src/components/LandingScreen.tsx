@@ -1,17 +1,42 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
-import { Canvas, Rect, Fill, Shader, Skia } from "@shopify/react-native-skia";
+import { Canvas, Fill, Shader, Skia } from "@shopify/react-native-skia";
 import { THEME, SPECTRUM } from "../constants/theme";
-import { hslToHex, positionToHsl } from "../utils/color";
 
-const SCANLINE_SHADER = Skia.RuntimeEffect.Make(`
+const SPECTRUM_SHADER = Skia.RuntimeEffect.Make(`
   uniform float2 resolution;
+  uniform float pixelSize;
+
   half4 main(float2 pos) {
+    // Quantize to pixel grid
+    float2 qpos = floor(pos / pixelSize) * pixelSize + pixelSize * 0.5;
+
+    // Map to hue (0-6) and lightness (0-1)
+    float hue = (qpos.x / resolution.x) * 6.0;
+    float l = 1.0 - qpos.y / resolution.y;
+
+    // HSL to RGB with s=1
+    float c = 1.0 - abs(2.0 * l - 1.0);
+    float x = c * (1.0 - abs(mod(hue, 2.0) - 1.0));
+    float m = l - c * 0.5;
+
+    float3 rgb;
+    if (hue < 1.0) { rgb = float3(c, x, 0.0); }
+    else if (hue < 2.0) { rgb = float3(x, c, 0.0); }
+    else if (hue < 3.0) { rgb = float3(0.0, c, x); }
+    else if (hue < 4.0) { rgb = float3(0.0, x, c); }
+    else if (hue < 5.0) { rgb = float3(x, 0.0, c); }
+    else { rgb = float3(c, 0.0, x); }
+
+    rgb += m;
+
+    // Scanline overlay
     float line = mod(pos.y, 3.0);
     if (line < 1.0) {
-      return half4(0.0, 0.0, 0.0, 0.15);
+      rgb *= 0.85;
     }
-    return half4(0.0, 0.0, 0.0, 0.0);
+
+    return half4(rgb, 1.0);
   }
 `)!;
 
@@ -21,30 +46,6 @@ interface LandingScreenProps {
 
 export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
   const { width, height } = useWindowDimensions();
-  const pixelSize = SPECTRUM.pixelSize;
-
-  const cols = Math.ceil(width / pixelSize);
-  const rows = Math.ceil(height / pixelSize);
-
-  const pixels = useMemo(() => {
-    const result: { x: number; y: number; color: string }[] = [];
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const { h, s, l } = positionToHsl(
-          col * pixelSize + pixelSize / 2,
-          row * pixelSize + pixelSize / 2,
-          width,
-          height
-        );
-        result.push({
-          x: col * pixelSize,
-          y: row * pixelSize,
-          color: hslToHex(h, s, l),
-        });
-      }
-    }
-    return result;
-  }, [cols, rows, pixelSize, width, height]);
 
   return (
     <TouchableOpacity
@@ -53,20 +54,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
       onPress={onStart}
     >
       <Canvas style={{ width, height, position: "absolute" }}>
-        {pixels.map((p, i) => (
-          <Rect
-            key={i}
-            x={p.x}
-            y={p.y}
-            width={pixelSize}
-            height={pixelSize}
-            color={p.color}
-          />
-        ))}
         <Fill>
           <Shader
-            source={SCANLINE_SHADER}
-            uniforms={{ resolution: [width, height] }}
+            source={SPECTRUM_SHADER}
+            uniforms={{ resolution: [width, height], pixelSize: SPECTRUM.pixelSize }}
           />
         </Fill>
       </Canvas>

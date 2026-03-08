@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -33,10 +33,19 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
     if (isValid) setRevealed(true);
   };
 
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
+  }, []);
+
   const handleReset = () => {
     setInput("");
     setRevealed(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    focusTimerRef.current = setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   return (
