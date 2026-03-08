@@ -5,6 +5,7 @@ import { THEME } from "../constants/theme";
 interface ModeSelectScreenProps {
   onBack: () => void;
   onSelect: (mode: "picker" | "single" | "colorMatch" | "enterHex") => void;
+  onSettings: () => void;
 }
 
 const MODES: {
@@ -18,11 +19,16 @@ const MODES: {
   { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
 ];
 
-export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect }) => {
+export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {
   return (
     <View style={styles.root}>
       <View style={styles.treeContainer}>
-        <Text style={styles.treeRoot}>HEX</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.treeRoot}>HEX</Text>
+          <TouchableOpacity onPress={onSettings} style={styles.settingsButton}>
+            <Text style={styles.settingsIcon}>{"[=]"}</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.branchRow}>
           <Text style={styles.treeLine}>{"│"}</Text>
         </View>
@@ -90,6 +96,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   treeRoot: {
     fontFamily: THEME.fontFamily,
     fontSize: 32,
@@ -97,7 +109,14 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(255,255,255,0.6)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
-    marginBottom: 8,
+  },
+  settingsButton: {
+    padding: 8,
+  },
+  settingsIcon: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.textDim,
   },
   branchRow: {
     flexDirection: "row",

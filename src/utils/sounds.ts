@@ -19,7 +19,18 @@ function getPlayer(name: SoundName): AudioPlayer {
   return players[name]!;
 }
 
+let muted = false;
+
+export function isMuted(): boolean {
+  return muted;
+}
+
+export function setMuted(value: boolean): void {
+  muted = value;
+}
+
 export function playSound(name: SoundName) {
+  if (muted) return;
   try {
     const player = getPlayer(name);
     player.seekTo(0);

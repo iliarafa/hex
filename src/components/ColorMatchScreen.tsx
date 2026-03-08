@@ -20,11 +20,10 @@ interface ColorMatchScreenProps {
 }
 
 const COLORS: { name: string; hex: string }[] = [
-  { name: "RED", hex: "#FF4444" },
+  { name: "RED", hex: "#FF2222" },
   { name: "BLUE", hex: "#4488FF" },
   { name: "GREEN", hex: "#44DD44" },
-  { name: "YELLOW", hex: "#FFDD44" },
-  { name: "ORANGE", hex: "#FF8844" },
+  { name: "YELLOW", hex: "#FFE500" },
   { name: "PURPLE", hex: "#CC44FF" },
 ];
 
