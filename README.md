@@ -13,7 +13,7 @@ Interactive full-screen color spectrum picker. Drag to explore hues and lightnes
 Color sort puzzle. 32 tiles arranged in an 8x4 grid — drag and swap to sort 8 shades of a random hue into the correct lightness order. Timed for competitive play.
 
 ### Match Hex
-A Stroop test speed game. Color words are printed in misleading colors — swipe right if the word's meaning matches the text color, swipe left if it doesn't. 45 seconds on the clock.
+A 45-second color match swipe challenge. Words denoting colors appear in deceptive shades — swipe right when the word's meaning aligns with its actual color, left when they clash. Glowing green/red signals confirm every decision.
 
 ### Enter Hex
 Type any 6-character hex code to see the color rendered as a full-screen swatch.
