@@ -1,7 +1,5 @@
 import { hslToHex } from "./color";
 
-export type PuzzleMode = "single" | "multi";
-
 export interface Tile {
   id: number;
   color: string;
@@ -10,31 +8,18 @@ export interface Tile {
 
 /**
  * Generate an 8x4 grid of tiles for the puzzle.
- * Returns 32 tiles in shuffled order.
+ * Returns 32 tiles in shuffled order — 8 lightness levels of a random hue.
  */
-export function generatePuzzle(mode: PuzzleMode): Tile[] {
+export function generatePuzzle(): Tile[] {
   const tiles: Tile[] = [];
   let id = 0;
 
-  if (mode === "single") {
-    // Random hue, 8 lightness levels
-    const hue = Math.floor(Math.random() * 360);
-    for (let row = 0; row < 8; row++) {
-      const lightness = 15 + row * 10; // 15, 25, 35, 45, 55, 65, 75, 85
-      const color = hslToHex(hue, 60, lightness);
-      for (let col = 0; col < 4; col++) {
-        tiles.push({ id: id++, color, targetRow: row });
-      }
-    }
-  } else {
-    // Random base hue, 8 closely-spaced hues within a ~60° arc
-    const baseHue = Math.floor(Math.random() * 360);
-    for (let row = 0; row < 8; row++) {
-      const hue = (baseHue + row * 8) % 360;
-      const color = hslToHex(hue, 55, 55);
-      for (let col = 0; col < 4; col++) {
-        tiles.push({ id: id++, color, targetRow: row });
-      }
+  const hue = Math.floor(Math.random() * 360);
+  for (let row = 0; row < 8; row++) {
+    const lightness = 85 - row * 10; // 85, 75, 65, 55, 45, 35, 25, 15 (lighter on top)
+    const color = hslToHex(hue, 60, lightness);
+    for (let col = 0; col < 4; col++) {
+      tiles.push({ id: id++, color, targetRow: row });
     }
   }
 
@@ -51,12 +36,11 @@ function shuffleTiles(tiles: Tile[]): Tile[] {
   return arr;
 }
 
-/** Check if puzzle is solved: every row has tiles with the same targetRow */
+/** Check if puzzle is solved: every row has tiles with the correct targetRow matching its position */
 export function isSolved(tiles: Tile[]): boolean {
   for (let row = 0; row < 8; row++) {
     const rowTiles = tiles.slice(row * 4, row * 4 + 4);
-    const firstTarget = rowTiles[0].targetRow;
-    if (!rowTiles.every((t) => t.targetRow === firstTarget)) {
+    if (!rowTiles.every((t) => t.targetRow === row)) {
       return false;
     }
   }

@@ -4,17 +4,17 @@ import { THEME } from "../constants/theme";
 
 interface ModeSelectScreenProps {
   onBack: () => void;
-  onSelect: (mode: "picker" | "single" | "multi" | "enterHex") => void;
+  onSelect: (mode: "picker" | "single" | "colorMatch" | "enterHex") => void;
 }
 
 const MODES: {
-  key: "picker" | "single" | "multi" | "enterHex";
+  key: "picker" | "single" | "colorMatch" | "enterHex";
   label: string;
   desc: string[];
 }[] = [
   { key: "picker", label: "FIND HEX", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
   { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
-  { key: "multi", label: "MULTI HEX", desc: ["SORT 8 DIFFERENT", "COLORS"] },
+  { key: "colorMatch", label: "MATCH HEX", desc: ["DOES THE MEANING", "MATCH THE COLOR?"] },
   { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
 ];
 

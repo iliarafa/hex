@@ -2,26 +2,25 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 import { PuzzleGrid } from "./PuzzleGrid";
-import { generatePuzzle, Tile, PuzzleMode } from "../utils/puzzle";
+import { generatePuzzle, Tile } from "../utils/puzzle";
 
 interface ChallengeScreenProps {
   onBack: () => void;
-  mode: PuzzleMode;
 }
 
-export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack, mode }) => {
-  const [tiles, setTiles] = useState<Tile[]>(() => generatePuzzle(mode));
+export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
+  const [tiles, setTiles] = useState<Tile[]>(() => generatePuzzle());
   const [solved, setSolved] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(Date.now());
 
   const startGame = useCallback(() => {
-    setTiles(generatePuzzle(mode));
+    setTiles(generatePuzzle());
     setSolved(false);
     setElapsed(0);
     startTimeRef.current = Date.now();
-  }, [mode]);
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -51,9 +50,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack, mode }
       </View>
 
       <View style={styles.gridContainer}>
-        <Text style={styles.title}>
-          {mode === "single" ? "SINGLE HEX" : "MULTI HEX"}
-        </Text>
+        <Text style={styles.title}>SINGLE HEX</Text>
         <PuzzleGrid
           tiles={tiles}
           onTilesChange={setTiles}

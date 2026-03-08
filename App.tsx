@@ -12,13 +12,12 @@ import { HexDisplay } from "./src/components/HexDisplay";
 import { ChallengeScreen } from "./src/components/ChallengeScreen";
 import { ModeSelectScreen } from "./src/components/ModeSelectScreen";
 import { EnterHexScreen } from "./src/components/EnterHexScreen";
+import { ColorMatchScreen } from "./src/components/ColorMatchScreen";
 import { THEME } from "./src/constants/theme";
-import { PuzzleMode } from "./src/utils/puzzle";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
-  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge" | "enterHex">("landing");
-  const [challengeMode, setChallengeMode] = useState<PuzzleMode>("single");
+  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge" | "enterHex" | "colorMatch">("landing");
   const [hex, setHex] = useState("#00FF41");
   const [spectrumHeight, setSpectrumHeight] = useState(0);
 
@@ -47,8 +46,9 @@ export default function App() {
               setScreen("picker");
             } else if (mode === "enterHex") {
               setScreen("enterHex");
+            } else if (mode === "colorMatch") {
+              setScreen("colorMatch");
             } else {
-              setChallengeMode(mode);
               setScreen("challenge");
             }
           }}
@@ -60,8 +60,12 @@ export default function App() {
       return <EnterHexScreen onBack={() => setScreen("mode")} />;
     }
 
+    if (screen === "colorMatch") {
+      return <ColorMatchScreen onBack={() => setScreen("mode")} />;
+    }
+
     if (screen === "challenge") {
-      return <ChallengeScreen onBack={() => setScreen("mode")} mode={challengeMode} />;
+      return <ChallengeScreen onBack={() => setScreen("mode")} />;
     }
 
     return (

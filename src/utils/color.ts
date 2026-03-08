@@ -67,6 +67,19 @@ export function randomHex(): string {
 }
 
 /**
+ * Calculate perceived luminance of a hex color (0-1, higher = lighter).
+ * Uses sRGB linearization + standard luminance coefficients.
+ */
+export function hexToLuminance(hex: string): number {
+  const { r, g, b } = hexToRgb(hex);
+  const linearize = (c: number) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+}
+
+/**
  * Given a position on the spectrum canvas, return the corresponding HSL values.
  * x/canvasWidth maps to hue (0-360), y/canvasHeight maps to lightness (100-0, top=bright).
  */

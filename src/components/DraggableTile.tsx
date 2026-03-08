@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   runOnJS,
+  LinearTransition,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { playSound } from "../utils/sounds";
@@ -64,6 +65,7 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View
+        layout={LinearTransition.springify()}
         style={[
           { width, height, backgroundColor: color },
           styles.tile,
