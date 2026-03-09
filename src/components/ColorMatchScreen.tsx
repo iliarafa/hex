@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -7,6 +7,7 @@ import Animated, {
   withSpring,
   withTiming,
   withSequence,
+  withRepeat,
   interpolateColor,
   runOnJS,
 } from "react-native-reanimated";
@@ -21,8 +22,8 @@ interface ColorMatchScreenProps {
 }
 
 const COLORS: { name: string; hex: string }[] = [
-  { name: "RED", hex: "#FF2222" },
-  { name: "BLUE", hex: "#4488FF" },
+  { name: "RED", hex: "#940011" },
+  { name: "BLUE", hex: "#0300BD" },
   { name: "GREEN", hex: "#44DD44" },
   { name: "YELLOW", hex: "#FFE500" },
   { name: "PURPLE", hex: "#CC44FF" },
@@ -124,6 +125,22 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
   const translateX = useSharedValue(0);
   const glowOpacity = useSharedValue(0);
   const wrongGlowOpacity = useSharedValue(0);
+  const pulseOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    pulseOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 1200 }),
+        withTiming(1, { duration: 1200 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
 
   const answered = useSharedValue(false);
 
@@ -207,18 +224,24 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
             </View>
 
             <View style={styles.swipeHintArea}>
+              <Animated.Text style={[styles.swipePrompt, pulseStyle]}>SWIPE OR TAP</Animated.Text>
+
               <View style={styles.swipeHintRow}>
-                <View style={styles.swipeIndicator}>
-                  <Text style={styles.swipeArrow}>{"<<"}</Text>
-                  <Text style={styles.swipeLabel}>NO</Text>
-                </View>
+                <Pressable style={styles.swipeIndicator} onPress={() => handleAnswer(false)}>
+                  <View style={styles.arrowRow}>
+                    <Text style={styles.swipeArrowNo}>{"‹"}</Text>
+                    <Text style={styles.swipeArrowNo}>{"‹"}</Text>
+                  </View>
+                  <Text style={styles.swipeLabelNo}>NO</Text>
+                </Pressable>
 
-                <Text style={styles.swipePrompt}>SWIPE</Text>
-
-                <View style={styles.swipeIndicator}>
-                  <Text style={styles.swipeArrow}>{">>"}</Text>
-                  <Text style={styles.swipeLabel}>YES</Text>
-                </View>
+                <Pressable style={styles.swipeIndicator} onPress={() => handleAnswer(true)}>
+                  <View style={styles.arrowRow}>
+                    <Text style={styles.swipeArrowYes}>{"›"}</Text>
+                    <Text style={styles.swipeArrowYes}>{"›"}</Text>
+                  </View>
+                  <Text style={styles.swipeLabelYes}>YES</Text>
+                </Pressable>
               </View>
             </View>
           </Animated.View>
@@ -322,29 +345,43 @@ const styles = StyleSheet.create({
   },
   swipeHintRow: {
     flexDirection: "row",
-    gap: 16,
-    width: "100%",
+    justifyContent: "center",
+    gap: 48,
   },
   swipeIndicator: {
-    flex: 1,
-    flexBasis: 0,
     alignItems: "center",
-    gap: 6,
+    gap: 12,
   },
-  swipeArrow: {
+  arrowRow: {
+    flexDirection: "row",
+    gap: 2,
+  },
+  swipeArrowNo: {
     fontFamily: THEME.fontFamily,
     fontSize: 24,
-    color: THEME.text,
+    color: "#940011",
   },
-  swipeLabel: {
+  swipeArrowYes: {
+    fontFamily: THEME.fontFamily,
+    fontSize: 24,
+    color: "#00ff41",
+  },
+  swipeLabelNo: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeLarge,
-    color: THEME.text,
+    color: "#940011",
+  },
+  swipeLabelYes: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeLarge,
+    color: "#00ff41",
   },
   swipePrompt: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.textBright,
+    letterSpacing: 2,
+    marginBottom: 24,
   },
   cardsRow: {
     flexDirection: "row",
