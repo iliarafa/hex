@@ -278,6 +278,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
           <View style={styles.swipeHintArea}>
             <View style={styles.gameOverContainer}>
               <Text style={styles.timeUpText}>TIME'S UP!</Text>
+              <Text style={styles.scoreCount}>{score}/{total}</Text>
               <Text style={styles.scoreResult}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
               <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
                 <Text style={styles.newGameButtonText}>NEW GAME</Text>
@@ -450,6 +451,11 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: 24,
     color: THEME.accent,
+  },
+  scoreCount: {
+    fontFamily: THEME.fontFamily,
+    fontSize: 24,
+    color: THEME.text,
   },
   scoreResult: {
     fontFamily: THEME.fontFamily,
