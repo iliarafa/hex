@@ -3,20 +3,25 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 import { PuzzleGrid } from "./PuzzleGrid";
 import { generatePuzzle, Tile } from "../utils/puzzle";
+import { hslToHex } from "../utils/color";
 
 interface ChallengeScreenProps {
   onBack: () => void;
 }
 
 export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
-  const [tiles, setTiles] = useState<Tile[]>(() => generatePuzzle());
+  const [{ tiles: initialTiles, hue: initialHue }] = useState(() => generatePuzzle());
+  const [tiles, setTiles] = useState<Tile[]>(initialTiles);
+  const [hue, setHue] = useState(initialHue);
   const [solved, setSolved] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(Date.now());
 
   const startGame = useCallback(() => {
-    setTiles(generatePuzzle());
+    const { tiles: newTiles, hue: newHue } = generatePuzzle();
+    setTiles(newTiles);
+    setHue(newHue);
     setSolved(false);
     setElapsed(0);
     startTimeRef.current = Date.now();
@@ -40,16 +45,18 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
     setElapsed((Date.now() - startTimeRef.current) / 1000);
   }, []);
 
+  const accentColor = hslToHex(hue, 60, 50);
+
   // Game screen
   return (
     <View style={styles.root}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-          <Text style={styles.backButton}>{"<"}</Text>
+          <Text style={[styles.backButton, { color: accentColor }]}>{"<"}</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.title}>SINGLE HEX</Text>
+      <Text style={[styles.title, { color: accentColor }]}>SINGLE HEX</Text>
 
       <View style={styles.gridContainer}>
         <PuzzleGrid
@@ -62,14 +69,14 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
       <View style={styles.footer}>
         {solved ? (
           <View style={styles.solvedContainer}>
-            <Text style={styles.solvedText}>SOLVED!</Text>
-            <Text style={styles.timeText}>{elapsed.toFixed(1)}s</Text>
-            <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
-              <Text style={styles.newGameText}>NEW GAME</Text>
+            <Text style={[styles.solvedText, { color: accentColor }]}>SOLVED!</Text>
+            <Text style={[styles.timeText, { color: accentColor }]}>{elapsed.toFixed(1)}s</Text>
+            <TouchableOpacity style={[styles.newGameButton, { borderColor: accentColor }]} onPress={startGame}>
+              <Text style={[styles.newGameText, { color: accentColor }]}>NEW GAME</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.timerText}>{elapsed.toFixed(1)}s</Text>
+          <Text style={[styles.timerText, { color: accentColor }]}>{elapsed.toFixed(1)}s</Text>
         )}
       </View>
     </View>

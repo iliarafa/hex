@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   question: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
+    fontSize: 10,
     color: THEME.textDim,
     textAlign: "center",
     lineHeight: 16,

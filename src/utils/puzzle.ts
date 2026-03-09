@@ -10,7 +10,7 @@ export interface Tile {
  * Generate an 8x4 grid of tiles for the puzzle.
  * Returns 32 tiles in shuffled order — 8 lightness levels of a random hue.
  */
-export function generatePuzzle(): Tile[] {
+export function generatePuzzle(): { tiles: Tile[]; hue: number } {
   const tiles: Tile[] = [];
   let id = 0;
 
@@ -23,7 +23,7 @@ export function generatePuzzle(): Tile[] {
     }
   }
 
-  return shuffleTiles(tiles);
+  return { tiles: shuffleTiles(tiles), hue };
 }
 
 /** Fisher-Yates shuffle */
