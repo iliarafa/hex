@@ -289,8 +289,8 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
       <View style={[styles.footer, gameOver && { opacity: 0 }]}>
         <View style={styles.statsRow}>
-          <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
           <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
+          <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
         </View>
       </View>
     </View>
@@ -434,12 +434,12 @@ const styles = StyleSheet.create({
   },
   scoreLive: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
+    fontSize: 18,
     color: THEME.text,
   },
   timerText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
+    fontSize: 18,
     color: THEME.textDim,
   },
   gameOverContainer: {
