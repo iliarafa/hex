@@ -49,8 +49,9 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
         </TouchableOpacity>
       </View>
 
+      <Text style={styles.title}>SINGLE HEX</Text>
+
       <View style={styles.gridContainer}>
-        <Text style={styles.title}>SINGLE HEX</Text>
         <PuzzleGrid
           tiles={tiles}
           onTilesChange={setTiles}
@@ -98,10 +99,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: THEME.text,
     textAlign: "center",
+    alignSelf: "center",
     textShadowColor: "rgba(255,255,255,0.6)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
-    marginBottom: 24,
+    marginTop: 60,
   },
   subtitle: {
     fontFamily: THEME.fontFamily,
