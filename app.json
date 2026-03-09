@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.iliarafa.hex",
       "deploymentTarget": "16.0",
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
