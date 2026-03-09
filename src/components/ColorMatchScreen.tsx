@@ -224,7 +224,11 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
             </View>
 
             <View style={styles.swipeHintArea}>
-              <Animated.Text style={[styles.swipePrompt, pulseStyle]}>SWIPE OR TAP</Animated.Text>
+              <Animated.View style={[styles.swipePromptRow, pulseStyle]}>
+                <Text style={styles.swipePrompt}>SWIPE</Text>
+                <Text style={styles.swipePromptOr}>OR</Text>
+                <Text style={styles.swipePrompt}>TAP</Text>
+              </Animated.View>
 
               <View style={styles.swipeHintRow}>
                 <Pressable style={styles.swipeIndicator} onPress={() => handleAnswer(false)}>
@@ -376,12 +380,23 @@ const styles = StyleSheet.create({
     fontSize: THEME.fontSizeLarge,
     color: "#00ff41",
   },
+  swipePromptRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
   swipePrompt: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
+    fontSize: 10,
     color: THEME.textBright,
     letterSpacing: 2,
-    marginBottom: 24,
+  },
+  swipePromptOr: {
+    fontFamily: THEME.fontFamily,
+    fontSize: 10,
+    color: THEME.textBright,
+    marginHorizontal: 6,
   },
   cardsRow: {
     flexDirection: "row",
