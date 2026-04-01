@@ -71,7 +71,7 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
           activeOpacity={0.7}
         >
           <Text style={[styles.actionText, saved && styles.saveTextActive]}>
-            {saved ? "[S] SAVED" : "[S] SAVE"}
+            {saved ? "SAVED" : "SAVE"}
           </Text>
         </TouchableOpacity>
       </View>

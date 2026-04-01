@@ -159,7 +159,7 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
                   saved && styles.saveButtonTextActive,
                 ]}
               >
-                {saved ? "[S] SAVED" : "[S] SAVE"}
+                {saved ? "SAVED" : "SAVE"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton} onPress={handleReset}>
