@@ -16,7 +16,7 @@ interface EnterHexScreenProps {
 }
 
 const HEX_REGEX = /^[0-9A-F]*$/;
-const NAME_REGEX = /^[A-Za-z]*$/;
+const NAME_REGEX = /^[A-Za-z][A-Za-z0-9 '\-.]*$|^$/;
 
 export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
   const [mode, setMode] = useState<"hex" | "name">("hex");
@@ -39,7 +39,8 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
       const upper = text.toUpperCase();
       if (HEX_REGEX.test(upper)) setInput(upper);
     } else {
-      if (NAME_REGEX.test(text)) setInput(text);
+      const cleaned = text.replace(/  +/g, " ");
+      if (NAME_REGEX.test(cleaned)) setInput(cleaned);
     }
   };
 
@@ -53,7 +54,7 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
       const hex = colorNameToHex(input);
       if (hex) {
         setResolvedHex(hex);
-        setResolvedName(input.toLowerCase());
+        setResolvedName(input.trim());
         setRevealed(true);
       } else {
         setError("UNKNOWN COLOR");
@@ -171,14 +172,14 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
               {mode === "hex" && <Text style={styles.hashPrefix}>#</Text>}
               <TextInput
                 ref={inputRef}
-                style={styles.hexInput}
+                style={[styles.hexInput, mode === "name" && styles.nameInput]}
                 value={input}
                 onChangeText={handleChange}
-                maxLength={mode === "hex" ? 6 : 20}
+                maxLength={mode === "hex" ? 6 : 40}
                 autoFocus
                 autoCapitalize={mode === "hex" ? "characters" : "none"}
                 autoCorrect={false}
-                placeholder={mode === "hex" ? "000000" : "red"}
+                placeholder={mode === "hex" ? "000000" : "enter color name"}
                 placeholderTextColor={THEME.border}
                 selectionColor={THEME.text}
                 onSubmitEditing={handleSubmit}
@@ -287,6 +288,8 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   hashPrefix: {
     fontFamily: THEME.fontFamily,
@@ -299,6 +302,12 @@ const styles = StyleSheet.create({
     color: THEME.text,
     minWidth: 200,
     padding: 0,
+  },
+  nameInput: {
+    fontSize: 22,
+    minWidth: 0,
+    width: "100%",
+    textAlign: "center",
   },
   errorText: {
     fontFamily: THEME.fontFamily,
