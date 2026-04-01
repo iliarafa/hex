@@ -4,12 +4,12 @@ import { THEME } from "../constants/theme";
 
 interface ModeSelectScreenProps {
   onBack: () => void;
-  onSelect: (mode: "picker" | "single" | "colorMatch" | "enterHex") => void;
+  onSelect: (mode: "picker" | "single" | "colorMatch" | "enterHex" | "favorites") => void;
   onSettings: () => void;
 }
 
 const MODES: {
-  key: "picker" | "single" | "colorMatch" | "enterHex";
+  key: "picker" | "single" | "colorMatch" | "enterHex" | "favorites";
   label: string;
   desc: string[];
 }[] = [
@@ -17,6 +17,7 @@ const MODES: {
   { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
   { key: "colorMatch", label: "MATCH HEX", desc: ["DOES THE MEANING", "MATCH THE COLOR?"] },
   { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
+  { key: "favorites", label: "FAVORITES", desc: ["YOUR SAVED", "COLORS"] },
 ];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {

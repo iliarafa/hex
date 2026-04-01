@@ -4,6 +4,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { THEME } from "../constants/theme";
 import { hexToRgb } from "../utils/color";
+import { useFavorites } from "../context/FavoritesContext";
 
 interface HexDisplayProps {
   hex: string;
@@ -13,6 +14,8 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
   const [copied, setCopied] = useState(false);
   const rgb = hexToRgb(hex);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toggleFavorite, isFav } = useFavorites();
+  const saved = isFav(hex);
 
   useEffect(() => {
     return () => {
@@ -27,6 +30,11 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setCopied(false), 1500);
   }, [hex]);
+
+  const handleSave = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await toggleFavorite(hex);
+  }, [hex, toggleFavorite]);
 
   return (
     <View style={styles.container}>
@@ -45,17 +53,28 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
         </View>
       </View>
 
-      {/* Copy button */}
-      <TouchableOpacity
-        style={[styles.copyButton, copied && styles.copyButtonActive]}
-        onPress={handleCopy}
-        activeOpacity={0.7}
-      >
-        <Text style={[styles.copyText, copied && styles.copyTextActive]}>
-          {copied ? "COPIED!" : "COPY"}
-        </Text>
-      </TouchableOpacity>
+      {/* Button row */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.actionButton, copied && styles.copyButtonActive]}
+          onPress={handleCopy}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.actionText, copied && styles.copyTextActive]}>
+            {copied ? "COPIED!" : "COPY"}
+          </Text>
+        </TouchableOpacity>
 
+        <TouchableOpacity
+          style={[styles.actionButton, saved && styles.saveButtonActive]}
+          onPress={handleSave}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.actionText, saved && styles.saveTextActive]}>
+            {saved ? "[S] SAVED" : "[S] SAVE"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -94,21 +113,32 @@ const styles = StyleSheet.create({
     fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
   },
-  copyButton: {
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
     borderWidth: 2,
     borderColor: THEME.text,
     paddingVertical: 12,
     alignItems: "center",
   },
-  copyButtonActive: {
-    backgroundColor: THEME.text,
-  },
-  copyText: {
+  actionText: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
   },
+  copyButtonActive: {
+    backgroundColor: THEME.text,
+  },
   copyTextActive: {
     color: THEME.bg,
+  },
+  saveButtonActive: {
+    borderColor: THEME.textBright,
+  },
+  saveTextActive: {
+    color: THEME.textBright,
   },
 });

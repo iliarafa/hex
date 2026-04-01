@@ -14,11 +14,13 @@ import { ModeSelectScreen } from "./src/components/ModeSelectScreen";
 import { EnterHexScreen } from "./src/components/EnterHexScreen";
 import { ColorMatchScreen } from "./src/components/ColorMatchScreen";
 import { SettingsScreen } from "./src/components/SettingsScreen";
+import { FavoritesScreen } from "./src/components/FavoritesScreen";
+import { FavoritesProvider } from "./src/context/FavoritesContext";
 import { THEME } from "./src/constants/theme";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
-  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge" | "enterHex" | "colorMatch" | "settings">("landing");
+  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge" | "enterHex" | "colorMatch" | "settings" | "favorites">("landing");
   const [hex, setHex] = useState("#00FF41");
   const [spectrumHeight, setSpectrumHeight] = useState(0);
 
@@ -50,6 +52,8 @@ export default function App() {
               setScreen("enterHex");
             } else if (mode === "colorMatch") {
               setScreen("colorMatch");
+            } else if (mode === "favorites") {
+              setScreen("favorites");
             } else {
               setScreen("challenge");
             }
@@ -72,6 +76,10 @@ export default function App() {
 
     if (screen === "challenge") {
       return <ChallengeScreen onBack={() => setScreen("mode")} />;
+    }
+
+    if (screen === "favorites") {
+      return <FavoritesScreen onBack={() => setScreen("mode")} />;
     }
 
     return (
@@ -105,17 +113,19 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaView style={styles.root}>
-        <StatusBar style="light" />
-        {screen === "landing" ? null : renderScreen()}
-      </SafeAreaView>
-      {screen === "landing" && (
-        <View style={StyleSheet.absoluteFill}>
-          <LandingScreen onStart={() => setScreen("mode")} />
-        </View>
-      )}
-    </GestureHandlerRootView>
+    <FavoritesProvider>
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaView style={styles.root}>
+          <StatusBar style="light" />
+          {screen === "landing" ? null : renderScreen()}
+        </SafeAreaView>
+        {screen === "landing" && (
+          <View style={StyleSheet.absoluteFill}>
+            <LandingScreen onStart={() => setScreen("mode")} />
+          </View>
+        )}
+      </GestureHandlerRootView>
+    </FavoritesProvider>
   );
 }
 

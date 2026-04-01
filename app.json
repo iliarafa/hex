@@ -5,18 +5,18 @@
     "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "backgroundColor": "#0a0a0a",
+    "backgroundColor": "#000000",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iliarafa.hex",
-      "deploymentTarget": "16.0",
-      "buildNumber": "3"
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "deploymentTarget": "16.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,10 +27,6 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
@@ -49,7 +45,14 @@
           "microphonePermission": false,
           "enableBackgroundPlayback": false
         }
-      ]
-    ]
+      ],
+      "./plugins/remove-swiftuicore"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f2c659bd-ffeb-4463-aa68-609411c9b85a"
+      }
+    },
+    "owner": "rafa_il"
   }
 }
