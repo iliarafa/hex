@@ -32,7 +32,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ onBack }) => {
           <Text style={styles.title}>HEX</Text>
           <View style={styles.backButtonSpacer} />
         </View>
-        <Text style={styles.subtitle}>FAVORITES</Text>
+        <Text style={styles.subtitle}>MY HEX</Text>
       </View>
 
       {favorites.length === 0 ? (

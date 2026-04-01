@@ -14,10 +14,10 @@ const MODES: {
   desc: string[];
 }[] = [
   { key: "picker", label: "FIND HEX", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
+  { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "OR A COLOR NAME"] },
   { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
   { key: "colorMatch", label: "MATCH HEX", desc: ["DOES THE MEANING", "MATCH THE COLOR?"] },
-  { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "SEE THE COLOR"] },
-  { key: "favorites", label: "FAVORITES", desc: ["YOUR SAVED", "COLORS"] },
+  { key: "favorites", label: "MY HEX", desc: ["YOUR SAVED", "COLORS"] },
 ];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {
