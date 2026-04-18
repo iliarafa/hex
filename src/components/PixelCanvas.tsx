@@ -5,7 +5,6 @@ import {
   useDerivedValue,
   useSharedValue,
 } from "react-native-reanimated";
-import { THEME } from "../constants/theme";
 
 interface PixelCanvasProps {
   pixels: (string | null)[];
@@ -132,7 +131,7 @@ export const PixelCanvas: React.FC<PixelCanvasProps> = React.memo(
                   y={l.y}
                   width={l.w}
                   height={l.h}
-                  color={THEME.border}
+                  color={CHECKER_DARK}
                 />
               ))}
             </Group>

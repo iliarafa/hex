@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  Alert,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { THEME } from "../constants/theme";
@@ -37,6 +36,7 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
   const { drawings, createDrawing, duplicateDrawing, deleteDrawing } =
     useDrawings();
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleNew = async (size: PixelSize) => {
     setSizeModalOpen(false);
@@ -46,17 +46,14 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert("DELETE DRAWING?", "This cannot be undone.", [
-      { text: "CANCEL", style: "cancel" },
-      {
-        text: "DELETE",
-        style: "destructive",
-        onPress: async () => {
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          await deleteDrawing(id);
-        },
-      },
-    ]);
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await deleteDrawing(deleteConfirmId);
+    setDeleteConfirmId(null);
   };
 
   const handleDuplicate = async (id: string) => {
@@ -161,6 +158,38 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
             >
               <Text style={styles.modalCancelText}>CANCEL</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteConfirmId !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteConfirmId(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>DELETE DRAWING?</Text>
+            <Text style={styles.modalHint}>THIS CANNOT BE UNDONE.</Text>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                onPress={() => setDeleteConfirmId(null)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>CANCEL</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmDelete}
+                style={[styles.modalButton, styles.modalButtonDanger]}
+              >
+                <Text
+                  style={[styles.modalButtonText, styles.modalButtonTextDanger]}
+                >
+                  DELETE
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -320,5 +349,34 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
+  },
+  modalHint: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    textAlign: "center",
+    marginTop: -8,
+  },
+  modalButtonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: THEME.border,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.text,
+  },
+  modalButtonDanger: {
+    borderColor: "#FF6347",
+  },
+  modalButtonTextDanger: {
+    color: "#FF6347",
   },
 });

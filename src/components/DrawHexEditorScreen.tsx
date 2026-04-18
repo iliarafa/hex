@@ -8,7 +8,6 @@ import {
   Modal,
   TextInput,
   useWindowDimensions,
-  Alert,
   SafeAreaView,
 } from "react-native";
 import * as Haptics from "expo-haptics";
@@ -34,7 +33,7 @@ interface DrawHexEditorScreenProps {
 type Tool = "pencil" | "eraser" | "fill" | "eyedropper";
 
 const TOOLS: { key: Tool; label: string }[] = [
-  { key: "pencil", label: "PEN" },
+  { key: "pencil", label: "DRAW" },
   { key: "eraser", label: "ERASE" },
   { key: "fill", label: "FILL" },
   { key: "eyedropper", label: "PICK" },
@@ -59,9 +58,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     drawing?.pixels ?? []
   );
   const [tool, setTool] = useState<Tool>("pencil");
-  const [currentColor, setCurrentColor] = useState<string>(
-    favorites[0]?.hex ?? "#00FF41"
-  );
+  const [currentColor, setCurrentColor] = useState<string>("#FFFFFF");
   const [hexModalOpen, setHexModalOpen] = useState(false);
   const [hexInput, setHexInput] = useState("");
   const [hexError, setHexError] = useState("");
@@ -71,6 +68,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [exportStatus, setExportStatus] = useState<string>("");
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const undoStackRef = useRef<(string | null)[][]>([]);
   const lastCellRef = useRef<number>(-1);
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -309,22 +307,15 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
 
   const handleClear = useCallback(() => {
     if (!drawing) return;
-    Alert.alert(
-      "CLEAR CANVAS?",
-      "This erases all pixels. You can undo.",
-      [
-        { text: "CANCEL", style: "cancel" },
-        {
-          text: "CLEAR",
-          style: "destructive",
-          onPress: () => {
-            pushUndo(pixels);
-            setPixels(new Array(drawing.width * drawing.height).fill(null));
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          },
-        },
-      ]
-    );
+    setClearConfirmOpen(true);
+  }, [drawing]);
+
+  const confirmClear = useCallback(() => {
+    if (!drawing) return;
+    pushUndo(pixels);
+    setPixels(new Array(drawing.width * drawing.height).fill(null));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setClearConfirmOpen(false);
   }, [drawing, pixels, pushUndo]);
 
   const openHexModal = useCallback(() => {
@@ -433,41 +424,58 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           </View>
         </GestureDetector>
 
-        {/* Zoom controls */}
-        <TouchableOpacity onPress={resetView} style={styles.fitButton}>
-          <Text style={styles.fitButtonText}>FIT</Text>
-        </TouchableOpacity>
-
-        {/* Tools */}
-        <View style={styles.toolRow}>
-          {TOOLS.map((t) => {
-            const active = tool === t.key;
-            return (
-              <TouchableOpacity
-                key={t.key}
-                onPress={() => setTool(t.key)}
-                style={[styles.toolButton, active && styles.toolButtonActive]}
-              >
-                <Text
+        {/* Tools — 3x2 grid: CLEAR UNDO FIT / PEN ERASE FILL */}
+        <View
+          style={[styles.toolGrid, { width: canvasSize + CANVAS_BORDER * 2 }]}
+        >
+          <View style={styles.toolRow}>
+            <TouchableOpacity
+              onPress={handleClear}
+              style={[styles.toolButton, styles.toolButtonFlex]}
+            >
+              <Text style={styles.toolButtonText}>CLEAR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleUndo}
+              style={[styles.toolButton, styles.toolButtonFlex]}
+            >
+              <Text style={styles.toolButtonText}>UNDO</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={resetView}
+              style={[styles.toolButton, styles.toolButtonFlex]}
+            >
+              <Text style={styles.toolButtonText}>FIT</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.toolRow}>
+            {TOOLS.filter((t) => t.key !== "eyedropper").map((t) => {
+              const active = tool === t.key;
+              return (
+                <TouchableOpacity
+                  key={t.key}
+                  onPress={() => setTool(t.key)}
                   style={[
-                    styles.toolButtonText,
-                    active && styles.toolButtonTextActive,
+                    styles.toolButton,
+                    styles.toolButtonFlex,
+                    active && styles.toolButtonActive,
                   ]}
                 >
-                  {t.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-          <TouchableOpacity onPress={handleUndo} style={styles.toolButton}>
-            <Text style={styles.toolButtonText}>UNDO</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleClear} style={styles.toolButton}>
-            <Text style={styles.toolButtonText}>CLEAR</Text>
-          </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.toolButtonText,
+                      active && styles.toolButtonTextActive,
+                    ]}
+                  >
+                    {t.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Current color + hex input */}
+        {/* Current color + hex input + eyedropper */}
         <View style={styles.colorRow}>
           <TouchableOpacity
             style={[styles.currentSwatch, { backgroundColor: currentColor }]}
@@ -478,6 +486,22 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           />
           <TouchableOpacity onPress={openHexModal} style={styles.currentHexButton}>
             <Text style={styles.currentHexText}>{currentColor}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setTool("eyedropper")}
+            style={[
+              styles.toolButton,
+              tool === "eyedropper" && styles.toolButtonActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.toolButtonText,
+                tool === "eyedropper" && styles.toolButtonTextActive,
+              ]}
+            >
+              PICK
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -680,6 +704,41 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Clear canvas confirm */}
+      <Modal
+        visible={clearConfirmOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setClearConfirmOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>CLEAR CANVAS?</Text>
+            <Text style={styles.modalHint}>
+              ERASES ALL PIXELS. YOU CAN UNDO.
+            </Text>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                onPress={() => setClearConfirmOpen(false)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>CANCEL</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmClear}
+                style={[styles.modalButton, styles.modalButtonDanger]}
+              >
+                <Text
+                  style={[styles.modalButtonText, styles.modalButtonTextDanger]}
+                >
+                  CLEAR
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -738,24 +797,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     overflow: "hidden",
   },
-  fitButton: {
-    borderWidth: 2,
-    borderColor: THEME.border,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-  },
-  fitButtonText: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
+  toolGrid: {
+    gap: 6,
+    marginBottom: 16,
   },
   toolRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
     gap: 6,
-    marginBottom: 16,
   },
   toolButton: {
     borderWidth: 2,
@@ -764,6 +812,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
+  },
+  toolButtonFlex: {
+    flex: 1,
   },
   toolButtonActive: {
     borderColor: THEME.text,
@@ -916,6 +967,12 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  modalButtonDanger: {
+    borderColor: "#FF6347",
+  },
+  modalButtonTextDanger: {
+    color: "#FF6347",
   },
   scaleButton: {
     borderWidth: 2,
