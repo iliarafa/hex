@@ -198,7 +198,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
         <GestureDetector gesture={swipeGesture}>
           <Animated.View style={styles.content}>
             <View style={styles.upperArea}>
-              <Text style={styles.title}>MATCH HEX</Text>
+              <Text style={styles.title}>COLOR MATCH</Text>
               <Text style={styles.question}>
                 DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
               </Text>
@@ -253,7 +253,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
       ) : (
         <View style={styles.content}>
           <View style={styles.upperArea}>
-            <Text style={styles.title}>MATCH HEX</Text>
+            <Text style={styles.title}>COLOR MATCH</Text>
             <Text style={styles.question}>
               DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
             </Text>

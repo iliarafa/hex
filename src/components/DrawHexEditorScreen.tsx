@@ -392,7 +392,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
             <Text style={styles.title}>HEX</Text>
             <View style={styles.backButtonSpacer} />
           </View>
-          <Text style={styles.subtitle}>DRAW HEX</Text>
+          <Text style={styles.subtitle}>DRAW</Text>
         </View>
         <View style={styles.missingContainer}>
           <Text style={styles.missingText}>DRAWING NOT FOUND</Text>
@@ -412,7 +412,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           <View style={styles.backButtonSpacer} />
         </View>
         <Text style={styles.subtitle}>
-          DRAW HEX · {drawing.width}x{drawing.height}
+          DRAW · {drawing.width}x{drawing.height}
         </Text>
       </View>
 
@@ -496,7 +496,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
 
         {/* Favorites palette */}
         <View style={styles.paletteSection}>
-          <Text style={styles.paletteLabel}>MY HEX</Text>
+          <Text style={styles.paletteLabel}>LIBRARY</Text>
           {favorites.length === 0 ? (
             <Text style={styles.paletteEmpty}>NO SAVED COLORS YET</Text>
           ) : (

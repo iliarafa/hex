@@ -56,7 +56,7 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.title, { color: accentColor }]}>SINGLE HEX</Text>
+      <Text style={[styles.title, { color: accentColor }]}>SHADES</Text>
 
       <View style={styles.gridContainer}>
         <PuzzleGrid

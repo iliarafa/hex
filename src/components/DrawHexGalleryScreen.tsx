@@ -74,7 +74,7 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
           <Text style={styles.title}>HEX</Text>
           <View style={styles.backButtonSpacer} />
         </View>
-        <Text style={styles.subtitle}>DRAW HEX</Text>
+        <Text style={styles.subtitle}>DRAW</Text>
       </View>
 
       <ScrollView

@@ -21,12 +21,12 @@ const MODES: {
   label: string;
   desc: string;
 }[] = [
-  { key: "picker", label: "FIND HEX", desc: "BROWSE THE SPECTRUM" },
-  { key: "enterHex", label: "ENTER HEX", desc: "HEX OR COLOR NAME" },
-  { key: "drawHex", label: "DRAW HEX", desc: "PIXEL ART + PNG EXPORT" },
-  { key: "single", label: "SINGLE HEX", desc: "SORT 8 SHADES" },
-  { key: "colorMatch", label: "MATCH HEX", desc: "WORD VS COLOR?" },
-  { key: "favorites", label: "MY HEX", desc: "SAVED COLORS" },
+  { key: "picker", label: "BROWSE", desc: "THE COLOR SPECTRUM" },
+  { key: "enterHex", label: "ENTER", desc: "HEX OR COLOR NAME" },
+  { key: "drawHex", label: "DRAW", desc: "PIXEL ART + PNG EXPORT" },
+  { key: "single", label: "SHADES", desc: "SORT 8 TONES" },
+  { key: "colorMatch", label: "COLOR MATCH", desc: "FLEXIBILITY TRAINING" },
+  { key: "favorites", label: "LIBRARY", desc: "SAVED COLORS" },
 ];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {
