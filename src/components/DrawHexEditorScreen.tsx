@@ -13,11 +13,10 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import Animated, {
+import {
   runOnJS,
   useSharedValue,
   useDerivedValue,
-  useAnimatedStyle,
 } from "react-native-reanimated";
 import { THEME } from "../constants/theme";
 import { useDrawings } from "../context/DrawingsContext";
@@ -290,14 +289,6 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleGesturePoint, handleGestureEnd]);
 
-  const animatedCanvasStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-  }));
-
   const resetView = useCallback(() => {
     scale.value = 1;
     savedScale.value = 1;
@@ -428,21 +419,17 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
               },
             ]}
           >
-            <Animated.View
-              style={[
-                { width: canvasSize, height: canvasSize },
-                animatedCanvasStyle,
-              ]}
-            >
-              <PixelCanvas
-                pixels={pixels}
-                width={drawing.width}
-                height={drawing.height}
-                canvasSize={canvasSize}
-                showCheckerboard
-                showGrid
-              />
-            </Animated.View>
+            <PixelCanvas
+              pixels={pixels}
+              width={drawing.width}
+              height={drawing.height}
+              canvasSize={canvasSize}
+              showCheckerboard
+              showGrid
+              scale={scale}
+              translateX={translateX}
+              translateY={translateY}
+            />
           </View>
         </GestureDetector>
 

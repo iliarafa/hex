@@ -1,5 +1,10 @@
 import React, { useMemo } from "react";
-import { Canvas, Rect, Group } from "@shopify/react-native-skia";
+import { Canvas, Rect, Group, vec } from "@shopify/react-native-skia";
+import {
+  SharedValue,
+  useDerivedValue,
+  useSharedValue,
+} from "react-native-reanimated";
 import { THEME } from "../constants/theme";
 
 interface PixelCanvasProps {
@@ -9,14 +14,46 @@ interface PixelCanvasProps {
   canvasSize: number;   // display width/height in points (square)
   showGrid?: boolean;
   showCheckerboard?: boolean;
+  scale?: SharedValue<number>;
+  translateX?: SharedValue<number>;
+  translateY?: SharedValue<number>;
 }
 
 const CHECKER_LIGHT = "#222222";
 const CHECKER_DARK = "#151515";
 
 export const PixelCanvas: React.FC<PixelCanvasProps> = React.memo(
-  ({ pixels, width, height, canvasSize, showGrid = false, showCheckerboard = false }) => {
+  ({
+    pixels,
+    width,
+    height,
+    canvasSize,
+    showGrid = false,
+    showCheckerboard = false,
+    scale,
+    translateX,
+    translateY,
+  }) => {
     const cellSize = canvasSize / Math.max(width, height);
+
+    // Fallback shared values so hooks run unconditionally when no transform
+    // props are supplied (rules of hooks).
+    const defaultScale = useSharedValue(1);
+    const defaultTranslate = useSharedValue(0);
+    const sScale = scale ?? defaultScale;
+    const sTx = translateX ?? defaultTranslate;
+    const sTy = translateY ?? defaultTranslate;
+
+    const transform = useDerivedValue(() => [
+      { translateX: sTx.value },
+      { translateY: sTy.value },
+      { scale: sScale.value },
+    ]);
+
+    const origin = useMemo(
+      () => vec(canvasSize / 2, canvasSize / 2),
+      [canvasSize]
+    );
 
     const checker = useMemo(() => {
       if (!showCheckerboard) return null;
@@ -59,11 +96,25 @@ export const PixelCanvas: React.FC<PixelCanvasProps> = React.memo(
 
     return (
       <Canvas style={{ width: width * cellSize, height: height * cellSize }}>
-        {checker && (
+        <Group transform={transform} origin={origin}>
+          {checker && (
+            <Group>
+              {checker.map((c, i) => (
+                <Rect
+                  key={`c-${i}`}
+                  x={c.x * cellSize}
+                  y={c.y * cellSize}
+                  width={cellSize}
+                  height={cellSize}
+                  color={c.fill}
+                />
+              ))}
+            </Group>
+          )}
           <Group>
-            {checker.map((c, i) => (
+            {paintedCells.map((c, i) => (
               <Rect
-                key={`c-${i}`}
+                key={`p-${c.x}-${c.y}-${i}`}
                 x={c.x * cellSize}
                 y={c.y * cellSize}
                 width={cellSize}
@@ -72,33 +123,21 @@ export const PixelCanvas: React.FC<PixelCanvasProps> = React.memo(
               />
             ))}
           </Group>
-        )}
-        <Group>
-          {paintedCells.map((c, i) => (
-            <Rect
-              key={`p-${c.x}-${c.y}-${i}`}
-              x={c.x * cellSize}
-              y={c.y * cellSize}
-              width={cellSize}
-              height={cellSize}
-              color={c.fill}
-            />
-          ))}
+          {gridLines && (
+            <Group>
+              {gridLines.map((l, i) => (
+                <Rect
+                  key={`g-${i}`}
+                  x={l.x}
+                  y={l.y}
+                  width={l.w}
+                  height={l.h}
+                  color={THEME.border}
+                />
+              ))}
+            </Group>
+          )}
         </Group>
-        {gridLines && (
-          <Group>
-            {gridLines.map((l, i) => (
-              <Rect
-                key={`g-${i}`}
-                x={l.x}
-                y={l.y}
-                width={l.w}
-                height={l.h}
-                color={THEME.border}
-              />
-            ))}
-          </Group>
-        )}
       </Canvas>
     );
   }
