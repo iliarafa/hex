@@ -9,6 +9,7 @@ import {
   TextInput,
   useWindowDimensions,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -17,6 +18,8 @@ import { THEME } from "../constants/theme";
 import { useDrawings } from "../context/DrawingsContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { PixelCanvas } from "./PixelCanvas";
+import { ColorSpectrum } from "./ColorSpectrum";
+import { ToolIcon, IconName } from "./ToolIcon";
 import { floodFill } from "../utils/floodFill";
 import { exportDrawingAsPng, ExportScale } from "../utils/pixelExport";
 
@@ -27,12 +30,14 @@ interface DrawHexEditorScreenProps {
 
 type Tool = "pencil" | "eraser" | "fill" | "eyedropper";
 
-const TOOLS: { key: Tool; label: string }[] = [
-  { key: "pencil", label: "PEN" },
-  { key: "eraser", label: "ERS" },
-  { key: "fill", label: "FIL" },
-  { key: "eyedropper", label: "EYE" },
+const TOOLS: { key: Tool; icon: IconName }[] = [
+  { key: "pencil", icon: "pencil" },
+  { key: "eraser", icon: "eraser" },
+  { key: "fill", icon: "fill" },
+  { key: "eyedropper", icon: "eyedropper" },
 ];
+
+const TOOL_ICON_SIZE = 24;
 
 const UNDO_LIMIT = 20;
 const AUTOSAVE_MS = 500;
@@ -58,6 +63,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const [hexModalOpen, setHexModalOpen] = useState(false);
   const [hexInput, setHexInput] = useState("");
   const [hexError, setHexError] = useState("");
+  const [spectrumModalOpen, setSpectrumModalOpen] = useState(false);
+  const [spectrumHex, setSpectrumHex] = useState<string>(currentColor);
+  const [spectrumHeight, setSpectrumHeight] = useState(0);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [exportStatus, setExportStatus] = useState<string>("");
@@ -316,27 +324,27 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
 
         {/* Tools */}
         <View style={styles.toolRow}>
-          {TOOLS.map((t) => (
-            <TouchableOpacity
-              key={t.key}
-              onPress={() => setTool(t.key)}
-              style={[styles.toolButton, tool === t.key && styles.toolButtonActive]}
-            >
-              <Text
-                style={[
-                  styles.toolButtonText,
-                  tool === t.key && styles.toolButtonTextActive,
-                ]}
+          {TOOLS.map((t) => {
+            const active = tool === t.key;
+            return (
+              <TouchableOpacity
+                key={t.key}
+                onPress={() => setTool(t.key)}
+                style={[styles.toolButton, active && styles.toolButtonActive]}
               >
-                {t.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <ToolIcon
+                  name={t.icon}
+                  size={TOOL_ICON_SIZE}
+                  color={active ? THEME.text : THEME.textDim}
+                />
+              </TouchableOpacity>
+            );
+          })}
           <TouchableOpacity onPress={handleUndo} style={styles.toolButton}>
-            <Text style={styles.toolButtonText}>UND</Text>
+            <ToolIcon name="undo" size={TOOL_ICON_SIZE} color={THEME.textDim} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleClear} style={styles.toolButton}>
-            <Text style={styles.toolButtonText}>CLR</Text>
+            <ToolIcon name="clear" size={TOOL_ICON_SIZE} color={THEME.textDim} />
           </TouchableOpacity>
         </View>
 
@@ -344,7 +352,10 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         <View style={styles.colorRow}>
           <TouchableOpacity
             style={[styles.currentSwatch, { backgroundColor: currentColor }]}
-            onPress={openHexModal}
+            onPress={() => {
+              setSpectrumHex(currentColor);
+              setSpectrumModalOpen(true);
+            }}
           />
           <TouchableOpacity onPress={openHexModal} style={styles.currentHexButton}>
             <Text style={styles.currentHexText}>{currentColor}</Text>
@@ -484,6 +495,72 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Spectrum picker modal */}
+      <Modal
+        visible={spectrumModalOpen}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={() => setSpectrumModalOpen(false)}
+      >
+        <SafeAreaView style={styles.spectrumModalRoot}>
+          <View style={styles.header}>
+            <View style={styles.titleRow}>
+              <TouchableOpacity
+                onPress={() => setSpectrumModalOpen(false)}
+                style={styles.backButtonContainer}
+              >
+                <Text style={styles.backButton}>{"<"}</Text>
+              </TouchableOpacity>
+              <Text style={styles.title}>HEX</Text>
+              <View style={styles.backButtonSpacer} />
+            </View>
+            <Text style={styles.subtitle}>PICK A COLOR</Text>
+          </View>
+
+          <View
+            style={styles.spectrumContainer}
+            onLayout={(e) => setSpectrumHeight(e.nativeEvent.layout.height)}
+          >
+            {spectrumModalOpen && spectrumHeight > 0 && (
+              <ColorSpectrum
+                height={spectrumHeight}
+                onColorChange={(hex) => setSpectrumHex(hex)}
+              />
+            )}
+          </View>
+
+          <View style={styles.spectrumFooter}>
+            <View style={styles.spectrumPreviewRow}>
+              <View
+                style={[
+                  styles.spectrumPreviewSwatch,
+                  { backgroundColor: spectrumHex },
+                ]}
+              />
+              <Text style={styles.spectrumPreviewHex}>{spectrumHex}</Text>
+            </View>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                onPress={() => setSpectrumModalOpen(false)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>CANCEL</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setCurrentColor(spectrumHex);
+                  setSpectrumModalOpen(false);
+                  Haptics.selectionAsync();
+                }}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>DONE</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 };
@@ -552,19 +629,12 @@ const styles = StyleSheet.create({
   toolButton: {
     borderWidth: 2,
     borderColor: THEME.border,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    padding: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   toolButtonActive: {
     borderColor: THEME.text,
-  },
-  toolButtonText: {
-    fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeMedium,
-    color: THEME.textDim,
-  },
-  toolButtonTextActive: {
-    color: THEME.text,
   },
   colorRow: {
     flexDirection: "row",
@@ -730,5 +800,37 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
+  },
+  spectrumModalRoot: {
+    flex: 1,
+    backgroundColor: THEME.bg,
+  },
+  spectrumContainer: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: THEME.border,
+  },
+  spectrumFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  spectrumPreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  spectrumPreviewSwatch: {
+    width: 48,
+    height: 48,
+    borderWidth: 2,
+    borderColor: THEME.border,
+  },
+  spectrumPreviewHex: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeLarge,
+    color: THEME.text,
   },
 });
