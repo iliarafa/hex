@@ -5,7 +5,17 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:shopify.github.io)",
       "WebFetch(domain:github.com)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx expo *)",
+      "Bash(curl -s -o /tmp/hex-bundle-check.log -w \"HTTP %{http_code} size=%{size_download}\\\\n\" \"http://localhost:8083/index.bundle?platform=ios&dev=true&minify=false\" --max-time 300)",
+      "Bash(curl -s -o /tmp/hex-bundle-check2.log -w \"HTTP %{http_code} size=%{size_download}\\\\n\" \"http://localhost:8083/index.bundle?platform=ios&dev=true&minify=false\" --max-time 120)",
+      "Bash(xcrun simctl *)",
+      "Bash(pod install *)",
+      "Bash(bash \"/Users/iliasrafailidis/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/7e142012-677b-44b6-a978-fb73d73980d2/00f63bc5-f5fe-42e0-b06c-e30ef8c6c507/skills/xcode-sim-sync/scripts/sync_and_launch.sh\")",
+      "Bash(open /Users/iliasrafailidis/development/hex/ios/HEX.xcworkspace)",
+      "Bash(git add *)"
     ]
   }
 }

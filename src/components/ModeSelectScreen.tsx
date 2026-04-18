@@ -2,22 +2,31 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 
+export type ModeKey =
+  | "picker"
+  | "single"
+  | "colorMatch"
+  | "enterHex"
+  | "favorites"
+  | "drawHex";
+
 interface ModeSelectScreenProps {
   onBack: () => void;
-  onSelect: (mode: "picker" | "single" | "colorMatch" | "enterHex" | "favorites") => void;
+  onSelect: (mode: ModeKey) => void;
   onSettings: () => void;
 }
 
 const MODES: {
-  key: "picker" | "single" | "colorMatch" | "enterHex" | "favorites";
+  key: ModeKey;
   label: string;
-  desc: string[];
+  desc: string;
 }[] = [
-  { key: "picker", label: "FIND HEX", desc: ["EXPLORE THE", "COLOR SPECTRUM"] },
-  { key: "enterHex", label: "ENTER HEX", desc: ["TYPE A HEX CODE", "OR A COLOR NAME"] },
-  { key: "single", label: "SINGLE HEX", desc: ["SORT 8 SHADES", "OF ONE COLOR"] },
-  { key: "colorMatch", label: "MATCH HEX", desc: ["DOES THE MEANING", "MATCH THE COLOR?"] },
-  { key: "favorites", label: "MY HEX", desc: ["YOUR SAVED", "COLORS"] },
+  { key: "picker", label: "FIND HEX", desc: "BROWSE THE SPECTRUM" },
+  { key: "enterHex", label: "ENTER HEX", desc: "HEX OR COLOR NAME" },
+  { key: "drawHex", label: "DRAW HEX", desc: "PIXEL ART + PNG EXPORT" },
+  { key: "single", label: "SINGLE HEX", desc: "SORT 8 SHADES" },
+  { key: "colorMatch", label: "MATCH HEX", desc: "WORD VS COLOR?" },
+  { key: "favorites", label: "MY HEX", desc: "SAVED COLORS" },
 ];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {
@@ -29,9 +38,6 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSe
           <TouchableOpacity onPress={onSettings} style={styles.settingsButton}>
             <Text style={styles.settingsIcon}>{"[=]"}</Text>
           </TouchableOpacity>
-        </View>
-        <View style={styles.branchRow}>
-          <Text style={styles.treeLine}>{"│"}</Text>
         </View>
         <View style={styles.branchRow}>
           <Text style={styles.treeLine}>{"│"}</Text>
@@ -52,16 +58,14 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSe
                 <Text style={styles.branchLabel}>{mode.label}</Text>
               </TouchableOpacity>
 
-              {mode.desc.map((line, j) => (
-                <View style={styles.branchRow} key={j}>
-                  <Text style={styles.treeLine}>{cont}</Text>
-                  <Text style={styles.branchDesc}>{line}</Text>
-                </View>
-              ))}
+              <View style={styles.branchRow}>
+                <Text style={[styles.treeLine, styles.treeLineDesc]}>{cont}</Text>
+                <Text style={styles.branchDesc}>{mode.desc}</Text>
+              </View>
 
               {!isLast && (
                 <View style={styles.branchRow}>
-                  <Text style={styles.treeLine}>{"│"}</Text>
+                  <Text style={[styles.treeLine, styles.treeLineDesc]}>{"│"}</Text>
                 </View>
               )}
             </React.Fragment>
@@ -105,7 +109,7 @@ const styles = StyleSheet.create({
   },
   treeRoot: {
     fontFamily: THEME.fontFamily,
-    fontSize: 32,
+    fontSize: 28,
     color: "#ffffff",
     textShadowColor: "rgba(255,255,255,0.6)",
     textShadowOffset: { width: 0, height: 0 },
@@ -127,18 +131,21 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeLarge,
     color: THEME.textDim,
-    lineHeight: 28,
+    lineHeight: 22,
+  },
+  treeLineDesc: {
+    lineHeight: 18,
   },
   branchLabel: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeLarge,
     color: THEME.text,
-    lineHeight: 28,
+    lineHeight: 22,
   },
   branchDesc: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
-    lineHeight: 28,
+    lineHeight: 18,
   },
 });

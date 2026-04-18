@@ -15,14 +15,29 @@ import { EnterHexScreen } from "./src/components/EnterHexScreen";
 import { ColorMatchScreen } from "./src/components/ColorMatchScreen";
 import { SettingsScreen } from "./src/components/SettingsScreen";
 import { FavoritesScreen } from "./src/components/FavoritesScreen";
+import { DrawHexGalleryScreen } from "./src/components/DrawHexGalleryScreen";
+import { DrawHexEditorScreen } from "./src/components/DrawHexEditorScreen";
 import { FavoritesProvider } from "./src/context/FavoritesContext";
+import { DrawingsProvider } from "./src/context/DrawingsContext";
 import { THEME } from "./src/constants/theme";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
-  const [screen, setScreen] = useState<"landing" | "mode" | "picker" | "challenge" | "enterHex" | "colorMatch" | "settings" | "favorites">("landing");
+  const [screen, setScreen] = useState<
+    | "landing"
+    | "mode"
+    | "picker"
+    | "challenge"
+    | "enterHex"
+    | "colorMatch"
+    | "settings"
+    | "favorites"
+    | "drawHexGallery"
+    | "drawHexEditor"
+  >("landing");
   const [hex, setHex] = useState("#00FF41");
   const [spectrumHeight, setSpectrumHeight] = useState(0);
+  const [editingDrawingId, setEditingDrawingId] = useState<string | null>(null);
 
   const handleColorChange = useCallback(
     (newHex: string, _h: number, _s: number, _l: number) => {
@@ -54,6 +69,8 @@ export default function App() {
               setScreen("colorMatch");
             } else if (mode === "favorites") {
               setScreen("favorites");
+            } else if (mode === "drawHex") {
+              setScreen("drawHexGallery");
             } else {
               setScreen("challenge");
             }
@@ -80,6 +97,30 @@ export default function App() {
 
     if (screen === "favorites") {
       return <FavoritesScreen onBack={() => setScreen("mode")} />;
+    }
+
+    if (screen === "drawHexGallery") {
+      return (
+        <DrawHexGalleryScreen
+          onBack={() => setScreen("mode")}
+          onOpenDrawing={(id) => {
+            setEditingDrawingId(id);
+            setScreen("drawHexEditor");
+          }}
+        />
+      );
+    }
+
+    if (screen === "drawHexEditor" && editingDrawingId) {
+      return (
+        <DrawHexEditorScreen
+          drawingId={editingDrawingId}
+          onBack={() => {
+            setEditingDrawingId(null);
+            setScreen("drawHexGallery");
+          }}
+        />
+      );
     }
 
     return (
@@ -114,17 +155,19 @@ export default function App() {
 
   return (
     <FavoritesProvider>
-      <GestureHandlerRootView style={styles.root}>
-        <SafeAreaView style={styles.root}>
-          <StatusBar style="light" />
-          {screen === "landing" ? null : renderScreen()}
-        </SafeAreaView>
-        {screen === "landing" && (
-          <View style={StyleSheet.absoluteFill}>
-            <LandingScreen onStart={() => setScreen("mode")} />
-          </View>
-        )}
-      </GestureHandlerRootView>
+      <DrawingsProvider>
+        <GestureHandlerRootView style={styles.root}>
+          <SafeAreaView style={styles.root}>
+            <StatusBar style="light" />
+            {screen === "landing" ? null : renderScreen()}
+          </SafeAreaView>
+          {screen === "landing" && (
+            <View style={StyleSheet.absoluteFill}>
+              <LandingScreen onStart={() => setScreen("mode")} />
+            </View>
+          )}
+        </GestureHandlerRootView>
+      </DrawingsProvider>
     </FavoritesProvider>
   );
 }

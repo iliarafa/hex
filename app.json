@@ -46,7 +46,16 @@
           "enableBackgroundPlayback": false
         }
       ],
-      "./plugins/remove-swiftuicore"
+      [
+        "expo-media-library",
+        {
+          "photosPermission": false,
+          "savePhotosPermission": "Hex saves pixel art you export to your Photos.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      "./plugins/remove-swiftuicore",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {
