@@ -52,7 +52,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const { getDrawing, updateDrawing } = useDrawings();
   const { favorites } = useFavorites();
   const drawing = getDrawing(drawingId);
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [pixels, setPixels] = useState<(string | null)[]>(
     drawing?.pixels ?? []
@@ -124,7 +124,11 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     };
   }, [drawing?.id, updateDrawing]);
 
-  const maxCanvasSize = Math.min(windowWidth - 32, 360);
+  const maxCanvasSize = Math.min(
+    windowWidth - 32,
+    windowHeight * 0.6,
+    720
+  );
   // Snap canvas to an integer multiple of the grid so every cell is identical.
   const canvasSize = drawing
     ? Math.floor(maxCanvasSize / drawing.width) * drawing.width
