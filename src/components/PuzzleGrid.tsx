@@ -10,15 +10,18 @@ interface PuzzleGridProps {
   tiles: Tile[];
   onTilesChange: (tiles: Tile[]) => void;
   onSolved: () => void;
+  availableWidth?: number;
 }
 
 export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
   tiles,
   onTilesChange,
   onSolved,
+  availableWidth,
 }) => {
-  const { width } = useAppViewport();
-  const gridWidth = width - 40; // 20px padding each side
+  const { width: viewportWidth } = useAppViewport();
+  const width = availableWidth && availableWidth > 0 ? availableWidth : viewportWidth;
+  const gridWidth = availableWidth ? width : width - 40;
   const tileWidth = gridWidth / 4;
   const tileHeight = tileWidth / 2;
   const gridHeight = tileHeight * 8;

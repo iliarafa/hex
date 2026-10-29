@@ -19,7 +19,7 @@ import {
   useTapGesture,
 } from "react-native-gesture-handler";
 import { AppModal as Modal } from "./AppModal";
-import { useAppViewport } from "./AppShell";
+import { useAppViewport, useIsDesktop } from "./AppShell";
 import { webDragStyle } from "../utils/webDrag";
 import {
   runOnJS,
@@ -62,6 +62,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const { favorites } = useFavorites();
   const drawing = getDrawing(drawingId);
   const { width: windowWidth, height: windowHeight } = useAppViewport();
+  const desktop = useIsDesktop();
 
   const [pixels, setPixels] = useState<(string | null)[]>(
     drawing?.pixels ?? []
@@ -133,11 +134,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     };
   }, [drawing?.id, updateDrawing]);
 
-  const maxCanvasSize = Math.min(
-    windowWidth - 32,
-    windowHeight * 0.6,
-    720
-  );
+  const maxCanvasSize = desktop
+    ? Math.min(windowWidth - 232 - 340 - 64, windowHeight - 48)
+    : Math.min(windowWidth - 32, windowHeight * 0.6, 720);
   // Snap canvas to an integer multiple of the grid so every cell is identical.
   const canvasSize = drawing
     ? Math.floor(maxCanvasSize / drawing.width) * drawing.width
@@ -427,6 +426,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
 
   return (
     <View style={styles.root}>
+      {!desktop && (
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
@@ -439,8 +439,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           DRAW · {drawing.width}x{drawing.height}
         </Text>
       </View>
+      )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, desktop && styles.workbenchContent]}>
         {/* Canvas */}
         <GestureDetector gesture={gesture}>
           <View
@@ -468,9 +469,23 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           </View>
         </GestureDetector>
 
+        <View style={desktop ? styles.toolColumn : undefined}>
+        {desktop && (
+          <TouchableOpacity onPress={onBack} style={styles.galleryLink}>
+            <Text style={styles.galleryLinkText}>{"<"} GALLERY</Text>
+          </TouchableOpacity>
+        )}
+        {desktop && (
+          <Text style={styles.toolColumnLabel}>
+            {drawing.width}x{drawing.height} · WHEEL ZOOMS
+          </Text>
+        )}
         {/* Tools — 3x2 grid: CLEAR UNDO FIT / PEN ERASE FILL */}
         <View
-          style={[styles.toolGrid, { width: canvasSize + CANVAS_BORDER * 2 }]}
+          style={[
+            styles.toolGrid,
+            { width: desktop ? 300 : canvasSize + CANVAS_BORDER * 2 },
+          ]}
         >
           <View style={styles.toolRow}>
             <TouchableOpacity
@@ -595,6 +610,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         {exportStatus ? (
           <Text style={styles.exportStatus}>{exportStatus}</Text>
         ) : null}
+        </View>
       </ScrollView>
 
       {/* Hex input modal */}
@@ -835,6 +851,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 40,
     paddingHorizontal: 16,
+  },
+  workbenchContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 28,
+    paddingTop: 28,
+    paddingHorizontal: 28,
+  },
+  toolColumn: {
+    width: 320,
+    paddingTop: 8,
+  },
+  toolColumnLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    marginBottom: 16,
+  },
+  galleryLink: {
+    marginBottom: 16,
+  },
+  galleryLinkText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
   },
   canvasWrapper: {
     borderWidth: 2,

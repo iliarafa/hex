@@ -56,15 +56,17 @@ const SPECTRUM_SHADER = Skia.RuntimeEffect.Make(`
 
 interface ColorSpectrumProps {
   height: number;
+  width?: number;
   onColorChange: (hex: string, h: number, s: number, l: number) => void;
 }
 
 export const ColorSpectrum: React.FC<ColorSpectrumProps> = ({
   height,
+  width,
   onColorChange,
 }) => {
-  const { width } = useAppViewport();
-  const canvasWidth = width;
+  const viewport = useAppViewport();
+  const canvasWidth = width && width > 0 ? width : viewport.width;
   const canvasHeight = height;
 
   const crosshairX = useSharedValue(canvasWidth / 2);

@@ -15,6 +15,7 @@ import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { playSound } from "../utils/sounds";
 import { webDragStyle } from "../utils/webDrag";
+import { useIsDesktop } from "./AppShell";
 
 const GAME_DURATION = 45;
 
@@ -65,6 +66,7 @@ function generateRound(): Round {
 export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
   onBack,
 }) => {
+  const desktop = useIsDesktop();
   const [round, setRound] = useState<Round>(() => generateRound());
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
@@ -210,13 +212,36 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
     ),
   }));
 
-  return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-          <Text style={styles.backButton}>{"<"}</Text>
+  const stats = (
+    <View style={desktop ? styles.sideStats : styles.statsRow}>
+      <Text style={styles.sideLabel}>TIME</Text>
+      <Text style={[styles.timerText, desktop && styles.sideValue]}>{remaining.toFixed(1)}s</Text>
+      <Text style={styles.sideLabel}>SCORE</Text>
+      <Text style={[styles.scoreLive, desktop && styles.sideValue]}>
+        {score}/{total}
+      </Text>
+      <Text style={styles.sideLabel}>HIT</Text>
+      <Text style={[styles.scoreLive, desktop && styles.sideLive]}>
+        {total > 0 ? Math.round((score / total) * 100) : 0}%
+      </Text>
+      {gameOver ? (
+        <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
+          <Text style={styles.newGameButtonText}>NEW GAME</Text>
         </TouchableOpacity>
-      </View>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <View style={[styles.root, desktop && styles.desktopRoot]}>
+      {!desktop && (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
+            <Text style={styles.backButton}>{"<"}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <View style={desktop ? styles.desktopPlay : styles.playFill}>
 
       {!gameOver ? (
         <GestureDetector gesture={swipeGesture}>
@@ -227,7 +252,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
                 DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
               </Text>
 
-              <View style={styles.cardsRow}>
+              <View style={[styles.cardsRow, desktop && styles.cardsRowDesktop]}>
                 <View style={styles.card}>
                   <Text style={styles.cardWord}>{round.leftWord}</Text>
                   <Text style={styles.cardLabel}>MEANING</Text>
@@ -282,7 +307,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
               DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
             </Text>
 
-            <View style={styles.cardsRow}>
+            <View style={[styles.cardsRow, desktop && styles.cardsRowDesktop]}>
               <View style={styles.card}>
                 <Text style={styles.cardWord}>{round.leftWord}</Text>
                 <Text style={styles.cardLabel}>MEANING</Text>
@@ -312,12 +337,16 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
         </View>
       )}
 
-      <View style={[styles.footer, gameOver && { opacity: 0 }]}>
-        <View style={styles.statsRow}>
-          <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
-          <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
+      {!desktop && (
+        <View style={[styles.footer, gameOver && { opacity: 0 }]}>
+          <View style={styles.statsRow}>
+            <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
+            <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
+          </View>
         </View>
+      )}
       </View>
+      {desktop ? <View style={styles.sidePanel}>{stats}</View> : null}
     </View>
   );
 };
@@ -427,6 +456,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
+  cardsRowDesktop: {
+    width: "78%",
+    maxWidth: 880,
+    alignSelf: "center",
+    gap: 28,
+  },
   card: {
     flex: 1,
     flexBasis: 0,
@@ -496,5 +531,38 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  playFill: {
+    flex: 1,
+  },
+  desktopRoot: {
+    flexDirection: "row",
+  },
+  desktopPlay: {
+    flex: 1,
+    minWidth: 0,
+  },
+  sidePanel: {
+    width: 280,
+    borderLeftWidth: 1,
+    borderLeftColor: THEME.border,
+    padding: 28,
+    justifyContent: "center",
+  },
+  sideStats: {
+    gap: 10,
+  },
+  sideLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    marginTop: 8,
+  },
+  sideValue: {
+    fontSize: 22,
+  },
+  sideLive: {
+    color: THEME.textBright,
+    fontSize: 22,
   },
 });

@@ -73,7 +73,7 @@ Serve the contents of `dist/` at `/hex` (not at the domain root). For iliasr.nyc
 
 `vercel.json` is for deploying this repo as its own static project. It builds `dist/` and rewrites `/hex/...` back onto those files, so a standalone Vercel URL also opens at `/hex`. That rewrite file is not used when the export is copied into the existing iliasr.nyc site.
 
-On the web, haptics are a no-op, PNG export downloads a file, and saved colors and drawings stay in `localStorage`. Pinch-zoom on Draw is available on touch screens; a mouse wheel over the canvas zooms on desktop.
+Wide browsers (1024px and up) use a full-width workstation: a mode rail and side-by-side panels. Narrow screens keep the phone layout. Haptics are a no-op, PNG export downloads a file, and saved colors and drawings stay in `localStorage`. Pinch-zoom on Draw is available on touch screens; a mouse wheel over the canvas zooms on desktop. Keys 1-6 switch modes.
 
 ## License
 
