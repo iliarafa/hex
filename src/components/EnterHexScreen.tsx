@@ -5,11 +5,14 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  type TextInputInstance,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { colorNameToHex } from "../utils/colorNames";
+import { hexToHsl, hexToRgb } from "../utils/color";
 import { useFavorites } from "../context/FavoritesContext";
+import { useIsDesktop } from "./AppShell";
 
 interface EnterHexScreenProps {
   onBack: () => void;
@@ -25,7 +28,7 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
   const [resolvedHex, setResolvedHex] = useState("");
   const [resolvedName, setResolvedName] = useState("");
   const [error, setError] = useState("");
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { toggleFavorite, isFav } = useFavorites();
 
   const isValid =
@@ -93,6 +96,107 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
   };
 
   const saved = isFav(resolvedHex);
+  const desktop = useIsDesktop();
+  const previewHex = revealed ? resolvedHex : "";
+  const previewRgb = previewHex ? hexToRgb(previewHex) : null;
+  const previewHsl = previewHex ? hexToHsl(previewHex) : null;
+
+  const form = (
+    <>
+      <View style={styles.toggleRow}>
+        <TouchableOpacity
+          style={[styles.toggleTab, mode === "hex" && styles.toggleTabActive]}
+          onPress={() => switchMode("hex")}
+        >
+          <Text style={[styles.toggleText, mode === "hex" && styles.toggleTextActive]}>HEX</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleTab, mode === "name" && styles.toggleTabActive]}
+          onPress={() => switchMode("name")}
+        >
+          <Text style={[styles.toggleText, mode === "name" && styles.toggleTextActive]}>NAME</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.inputContainer}>
+        <View style={styles.inputRow}>
+          {mode === "hex" && <Text style={styles.hashPrefix}>#</Text>}
+          <TextInput
+            ref={inputRef}
+            style={[styles.hexInput, mode === "name" && styles.nameInput]}
+            value={input}
+            onChangeText={handleChange}
+            maxLength={mode === "hex" ? 6 : 40}
+            autoFocus={false}
+            autoCapitalize={mode === "hex" ? "characters" : "none"}
+            autoCorrect={false}
+            placeholder={mode === "hex" ? "000000" : "enter color name"}
+            placeholderTextColor={THEME.border}
+            selectionColor={THEME.text}
+            onSubmitEditing={handleSubmit}
+            returnKeyType="go"
+            enterKeyHint="go"
+          />
+        </View>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.neutralButton, !isValid && styles.actionButtonDisabled]}
+          onPress={handleSubmit}
+          disabled={!isValid}
+        >
+          <Text style={[styles.actionButtonText, styles.neutralButtonText, !isValid && styles.actionButtonTextDisabled]}>
+            GO
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  if (desktop) {
+    return (
+      <View style={styles.desktopRoot}>
+        <View style={styles.desktopForm}>
+          <Text style={styles.desktopKicker}>{mode === "hex" ? "ENTER HEX" : "ENTER NAME"}</Text>
+          {form}
+        </View>
+        <View style={styles.desktopPreview}>
+          <View
+            style={[
+              styles.desktopSwatch,
+              { backgroundColor: previewHex || THEME.bgSecondary },
+            ]}
+          />
+          {previewHex ? (
+            <>
+              <Text style={styles.desktopHex}>{previewHex}</Text>
+              {resolvedName ? <Text style={styles.nameLabel}>{resolvedName}</Text> : null}
+              {previewRgb && previewHsl ? (
+                <View style={styles.desktopReadouts}>
+                  <Text style={styles.desktopReadLabel}>RGB</Text>
+                  <Text style={styles.desktopReadValue}>
+                    {previewRgb.r}  {previewRgb.g}  {previewRgb.b}
+                  </Text>
+                  <Text style={styles.desktopReadLabel}>HSL</Text>
+                  <Text style={styles.desktopReadValue}>
+                    {previewHsl.h}  {previewHsl.s}  {previewHsl.l}
+                  </Text>
+                </View>
+              ) : null}
+              <TouchableOpacity
+                style={[styles.saveButton, styles.neutralButton]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.saveButtonText, styles.neutralButtonText]}>
+                  {saved ? "SAVED" : "SAVE"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.standby}>STANDBY</Text>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -109,33 +213,18 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
         </Text>
       </View>
 
-      {/* Mode toggle */}
       <View style={styles.toggleRow}>
         <TouchableOpacity
           style={[styles.toggleTab, mode === "hex" && styles.toggleTabActive]}
           onPress={() => switchMode("hex")}
         >
-          <Text
-            style={[
-              styles.toggleText,
-              mode === "hex" && styles.toggleTextActive,
-            ]}
-          >
-            HEX
-          </Text>
+          <Text style={[styles.toggleText, mode === "hex" && styles.toggleTextActive]}>HEX</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.toggleTab, mode === "name" && styles.toggleTabActive]}
           onPress={() => switchMode("name")}
         >
-          <Text
-            style={[
-              styles.toggleText,
-              mode === "name" && styles.toggleTextActive,
-            ]}
-          >
-            NAME
-          </Text>
+          <Text style={[styles.toggleText, mode === "name" && styles.toggleTextActive]}>NAME</Text>
         </TouchableOpacity>
       </View>
 
@@ -183,6 +272,8 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
                 placeholderTextColor={THEME.border}
                 selectionColor={THEME.text}
                 onSubmitEditing={handleSubmit}
+                returnKeyType="go"
+                enterKeyHint="go"
               />
             </View>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -371,5 +462,76 @@ const styles = StyleSheet.create({
   },
   saveButtonTextActive: {
     color: THEME.textBright,
+  },
+  desktopRoot: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: THEME.bg,
+  },
+  desktopForm: {
+    width: 420,
+    paddingHorizontal: 36,
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 32,
+    justifyContent: "flex-start",
+    borderRightWidth: 1,
+    borderRightColor: THEME.border,
+    gap: 8,
+  },
+  desktopKicker: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    marginBottom: 20,
+  },
+  desktopPreview: {
+    flex: 1,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    paddingTop: THEME.desktopPanelTop,
+    paddingHorizontal: 40,
+    paddingBottom: 40,
+    gap: 20,
+  },
+  desktopSwatch: {
+    width: "100%",
+    maxWidth: 420,
+    height: 220,
+    borderWidth: 2,
+    borderColor: THEME.border,
+  },
+  desktopHex: {
+    fontFamily: THEME.fontFamily,
+    fontSize: 28,
+    color: THEME.textBright,
+    textShadowColor: THEME.textBright,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  desktopReadouts: {
+    alignItems: "center",
+    gap: 8,
+  },
+  desktopReadLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+  },
+  desktopReadValue: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.text,
+    marginBottom: 8,
+  },
+  standby: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.textDim,
+  },
+  neutralButton: {
+    borderColor: THEME.border,
+  },
+  neutralButtonText: {
+    color: THEME.textDim,
   },
 });

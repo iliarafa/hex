@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*).wasm",
+      "headers": [{ "key": "Content-Type", "value": "application/wasm" }]
+    }
+  ],
+  "rewrites": [
+    { "source": "/hex", "destination": "/index.html" },
+    { "source": "/hex/", "destination": "/index.html" },
+    { "source": "/hex/canvaskit.wasm", "destination": "/canvaskit.wasm" },
+    { "source": "/hex/_expo/:path*", "destination": "/_expo/:path*" },
+    { "source": "/hex/assets/:path*", "destination": "/assets/:path*" }
+  ]
+}

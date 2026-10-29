@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Platform } from "react-native";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,9 +11,11 @@ import Animated, {
   interpolateColor,
   runOnJS,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { playSound } from "../utils/sounds";
+import { webDragStyle } from "../utils/webDrag";
+import { useIsDesktop } from "./AppShell";
 
 const GAME_DURATION = 45;
 
@@ -64,6 +66,7 @@ function generateRound(): Round {
 export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
   onBack,
 }) => {
+  const desktop = useIsDesktop();
   const [round, setRound] = useState<Round>(() => generateRound());
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
@@ -143,24 +146,47 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
   }));
 
   const answered = useSharedValue(false);
+  const answerRef = useRef(handleAnswer);
+  answerRef.current = handleAnswer;
+  const answerFromGesture = useCallback((playerAnswer: boolean) => {
+    answerRef.current(playerAnswer);
+  }, []);
 
-  const swipeGesture = Gesture.Pan()
-    .onBegin(() => {
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        answerRef.current(true);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        answerRef.current(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const swipeGesture = usePanGesture({
+    onBegin: () => {
       answered.value = false;
-    })
-    .onChange((e) => {
+    },
+    onUpdate: (e) => {
       translateX.value = e.translationX;
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       if (translateX.value > SWIPE_THRESHOLD && !answered.value) {
         answered.value = true;
-        runOnJS(handleAnswer)(true);
+        runOnJS(answerFromGesture)(true);
       } else if (translateX.value < -SWIPE_THRESHOLD && !answered.value) {
         answered.value = true;
-        runOnJS(handleAnswer)(false);
+        runOnJS(answerFromGesture)(false);
       }
       translateX.value = withSpring(0);
-    });
+    },
+  });
 
   const correctGlowStyle = useAnimatedStyle(() => ({
     shadowColor: "#00ff41",
@@ -186,24 +212,47 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
     ),
   }));
 
-  return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
-          <Text style={styles.backButton}>{"<"}</Text>
+  const stats = (
+    <View style={desktop ? styles.sideStats : styles.statsRow}>
+      <Text style={styles.sideLabel}>TIME</Text>
+      <Text style={[styles.timerText, desktop && styles.sideValue]}>{remaining.toFixed(1)}s</Text>
+      <Text style={styles.sideLabel}>SCORE</Text>
+      <Text style={[styles.scoreLive, desktop && styles.sideLive]}>
+        {score}/{total}
+      </Text>
+      <Text style={styles.sideLabel}>HIT</Text>
+      <Text style={[styles.scoreLive, desktop && styles.sideLive]}>
+        {total > 0 ? Math.round((score / total) * 100) : 0}%
+      </Text>
+      {gameOver ? (
+        <TouchableOpacity style={styles.newGameButton} onPress={startGame}>
+          <Text style={styles.newGameButtonText}>NEW GAME</Text>
         </TouchableOpacity>
-      </View>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <View style={[styles.root, desktop && styles.desktopRoot]}>
+      {!desktop && (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
+            <Text style={styles.backButton}>{"<"}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <View style={desktop ? styles.desktopPlay : styles.playFill}>
 
       {!gameOver ? (
         <GestureDetector gesture={swipeGesture}>
-          <Animated.View style={styles.content}>
-            <View style={styles.upperArea}>
+          <Animated.View style={[styles.content, desktop && styles.desktopPlayColumn, webDragStyle]}>
+            <View style={desktop ? styles.desktopUpper : styles.upperArea}>
               <Text style={styles.title}>COLOR MATCH</Text>
               <Text style={styles.question}>
                 DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
               </Text>
 
-              <View style={styles.cardsRow}>
+              <View style={[styles.cardsRow, desktop && styles.cardsRowDesktop]}>
                 <View style={styles.card}>
                   <Text style={styles.cardWord}>{round.leftWord}</Text>
                   <Text style={styles.cardLabel}>MEANING</Text>
@@ -223,6 +272,16 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
               </View>
             </View>
 
+            {desktop ? (
+              <View style={styles.desktopAnswers}>
+                <Pressable style={styles.answerButton} onPress={() => handleAnswer(false)}>
+                  <Text style={styles.answerButtonText}>NO  [←]</Text>
+                </Pressable>
+                <Pressable style={styles.answerButton} onPress={() => handleAnswer(true)}>
+                  <Text style={styles.answerButtonText}>YES  [→]</Text>
+                </Pressable>
+              </View>
+            ) : (
             <View style={styles.swipeHintArea}>
               <Animated.View style={[styles.swipePromptRow, pulseStyle]}>
                 <Text style={styles.swipePrompt}>SWIPE</Text>
@@ -248,17 +307,18 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
                 </Pressable>
               </View>
             </View>
+            )}
           </Animated.View>
         </GestureDetector>
       ) : (
-        <View style={styles.content}>
-          <View style={styles.upperArea}>
+        <View style={[styles.content, desktop && styles.desktopPlayColumn]}>
+          <View style={desktop ? styles.desktopUpper : styles.upperArea}>
             <Text style={styles.title}>COLOR MATCH</Text>
             <Text style={styles.question}>
               DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
             </Text>
 
-            <View style={styles.cardsRow}>
+            <View style={[styles.cardsRow, desktop && styles.cardsRowDesktop]}>
               <View style={styles.card}>
                 <Text style={styles.cardWord}>{round.leftWord}</Text>
                 <Text style={styles.cardLabel}>MEANING</Text>
@@ -275,7 +335,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
             </View>
           </View>
 
-          <View style={styles.swipeHintArea}>
+          <View style={desktop ? styles.desktopAnswers : styles.swipeHintArea}>
             <View style={styles.gameOverContainer}>
               <Text style={styles.timeUpText}>TIME'S UP!</Text>
               <Text style={styles.scoreCount}>{score}/{total}</Text>
@@ -288,12 +348,16 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
         </View>
       )}
 
-      <View style={[styles.footer, gameOver && { opacity: 0 }]}>
-        <View style={styles.statsRow}>
-          <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
-          <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
+      {!desktop && (
+        <View style={[styles.footer, gameOver && { opacity: 0 }]}>
+          <View style={styles.statsRow}>
+            <Text style={styles.timerText}>{remaining.toFixed(1)}s</Text>
+            <Text style={styles.scoreLive}>{total > 0 ? Math.round((score / total) * 100) : 0}%</Text>
+          </View>
         </View>
+      )}
       </View>
+      {desktop ? <View style={styles.sidePanel}>{stats}</View> : null}
     </View>
   );
 };
@@ -403,6 +467,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
+  cardsRowDesktop: {
+    width: "78%",
+    maxWidth: 880,
+    alignSelf: "center",
+    gap: 28,
+  },
+  desktopPlayColumn: {
+    justifyContent: "flex-start",
+    paddingTop: THEME.desktopPanelTop,
+  },
+  desktopUpper: {
+    alignItems: "center",
+  },
+  desktopAnswers: {
+    marginTop: 32,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+  },
+  answerButton: {
+    borderWidth: 2,
+    borderColor: THEME.border,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    minWidth: 160,
+    alignItems: "center",
+  },
+  answerButtonText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.railIdle,
+  },
   card: {
     flex: 1,
     flexBasis: 0,
@@ -472,5 +568,40 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  playFill: {
+    flex: 1,
+  },
+  desktopRoot: {
+    flexDirection: "row",
+  },
+  desktopPlay: {
+    flex: 1,
+    minWidth: 0,
+  },
+  sidePanel: {
+    width: 280,
+    borderLeftWidth: 1,
+    borderLeftColor: THEME.border,
+    paddingHorizontal: 28,
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 28,
+    justifyContent: "flex-start",
+  },
+  sideStats: {
+    gap: 10,
+  },
+  sideLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    marginTop: 8,
+  },
+  sideValue: {
+    fontSize: 22,
+  },
+  sideLive: {
+    color: THEME.textBright,
+    fontSize: 22,
   },
 });

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useAppViewport } from "./AppShell";
 import { Canvas, Fill, Shader, Skia } from "@shopify/react-native-skia";
 import { THEME, SPECTRUM } from "../constants/theme";
 
@@ -45,7 +46,7 @@ interface LandingScreenProps {
 }
 
 export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useAppViewport();
 
   return (
     <TouchableOpacity

@@ -5,10 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Modal,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import { AppModal as Modal } from "./AppModal";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
+import { useIsDesktop } from "./AppShell";
 import { useDrawings } from "../context/DrawingsContext";
 import { PixelSize } from "../utils/drawings";
 import { PixelCanvas } from "./PixelCanvas";
@@ -37,6 +38,8 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
     useDrawings();
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const desktop = useIsDesktop();
+  const thumb = desktop ? 140 : THUMB_PX;
 
   const handleNew = async (size: PixelSize) => {
     setSizeModalOpen(false);
@@ -63,7 +66,7 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
+      {!desktop && <View style={styles.header}>
         <View style={styles.titleRow}>
           <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
             <Text style={styles.backButton}>{"<"}</Text>
@@ -72,14 +75,14 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
           <View style={styles.backButtonSpacer} />
         </View>
         <Text style={styles.subtitle}>DRAW</Text>
-      </View>
+      </View>}
 
       <ScrollView
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, desktop && styles.desktopList]}
       >
         <TouchableOpacity
-          style={styles.newButton}
+          style={[styles.newButton, desktop && styles.desktopNew]}
           onPress={() => setSizeModalOpen(true)}
         >
           <Text style={styles.newButtonText}>+ NEW DRAWING</Text>
@@ -89,17 +92,17 @@ export const DrawHexGalleryScreen: React.FC<DrawHexGalleryScreenProps> = ({
           <Text style={styles.emptyText}>NO DRAWINGS YET</Text>
         ) : (
           drawings.map((d, i) => (
-            <View key={d.id} style={styles.item}>
+            <View key={d.id} style={[styles.item, desktop && styles.desktopCard]}>
               <TouchableOpacity
-                style={styles.thumbWrap}
+                style={[styles.thumbWrap, { width: thumb, height: thumb }]}
                 onPress={() => onOpenDrawing(d.id)}
               >
-                <View style={styles.thumbBorder}>
+                <View style={[styles.thumbBorder, { width: thumb, height: thumb }]}>
                   <PixelCanvas
                     pixels={d.pixels}
                     width={d.width}
                     height={d.height}
-                    canvasSize={THUMB_PX}
+                    canvasSize={thumb}
                     showCheckerboard
                   />
                 </View>
@@ -273,6 +276,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: THEME.border,
     gap: 10,
+  },
+  desktopList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    padding: 28,
+  },
+  desktopNew: {
+    width: 280,
+    alignSelf: "flex-start",
+  },
+  desktopCard: {
+    width: 280,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: THEME.border,
+    padding: 12,
   },
   thumbWrap: {
     width: THUMB_PX,

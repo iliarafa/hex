@@ -1,6 +1,6 @@
 # HEX
 
-A retro color game and utility app for iOS and Android. Explore colors, solve puzzles, create pixel art, and test your perception — all wrapped in a CRT-inspired pixel-art aesthetic.
+A retro color game and utility app for iOS, Android, and the web. Explore colors, solve puzzles, create pixel art, and test your perception — all wrapped in a CRT-inspired pixel-art aesthetic.
 
 Built with React Native, Expo, and TypeScript.
 
@@ -37,7 +37,7 @@ Your saved colors across all modes. Tap Save on any color preview to add it; tap
 
 ## Tech Stack
 
-- **Framework:** React Native 0.83 + Expo 55
+- **Framework:** React Native 0.88 + Expo 58 (web via react-native-web and CanvasKit)
 - **Language:** TypeScript
 - **Graphics:** @shopify/react-native-skia (GLSL shader for the spectrum, Skia Canvas for the pixel grid)
 - **Animations & gestures:** react-native-reanimated + react-native-gesture-handler
@@ -59,6 +59,21 @@ npx expo prebuild         # first time, or after adding native deps
 cd ios && pod install     # if prebuild didn't already run it
 npx expo run:ios
 ```
+
+## Web
+
+The same codebase exports a static site with `experiments.baseUrl` set to `/hex`, so asset URLs are rooted at that subpath.
+
+```bash
+npm install          # copies canvaskit.wasm into public/
+npm run export:web   # writes dist/
+```
+
+Serve the contents of `dist/` at `/hex` (not at the domain root). For iliasr.nyc, copy `dist/` into the site's `hex/` directory. A request for `https://iliasr.nyc/hex/` then loads `hex/index.html`, and the page fetches `/hex/_expo/...` and `/hex/canvaskit.wasm` from that same folder.
+
+`vercel.json` is for deploying this repo as its own static project. It builds `dist/` and rewrites `/hex/...` back onto those files, so a standalone Vercel URL also opens at `/hex`. That rewrite file is not used when the export is copied into the existing iliasr.nyc site.
+
+Wide browsers (1024px and up) use a full-width workstation: a mode rail and side-by-side panels. Narrow screens keep the phone layout. Haptics are a no-op, PNG export downloads a file, and saved colors and drawings stay in `localStorage`. Pinch-zoom on Draw is available on touch screens; a mouse wheel over the canvas zooms on desktop. Keys 1-6 switch modes.
 
 ## License
 

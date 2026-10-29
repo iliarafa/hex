@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { useFavorites } from "../context/FavoritesContext";
+import { useIsDesktop } from "./AppShell";
 
 interface FavoritesScreenProps {
   onBack: () => void;
@@ -16,6 +17,7 @@ interface FavoritesScreenProps {
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ onBack }) => {
   const { favorites, toggleFavorite } = useFavorites();
+  const desktop = useIsDesktop();
 
   const handleRemove = async (hex: string) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -24,7 +26,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ onBack }) => {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
+      {!desktop && <View style={styles.header}>
         <View style={styles.titleRow}>
           <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
             <Text style={styles.backButton}>{"<"}</Text>
@@ -33,20 +35,23 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ onBack }) => {
           <View style={styles.backButtonSpacer} />
         </View>
         <Text style={styles.subtitle}>LIBRARY</Text>
-      </View>
+      </View>}
 
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>NO SAVED COLORS</Text>
         </View>
       ) : (
-        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+        <ScrollView
+          style={styles.list}
+          contentContainerStyle={[styles.listContent, desktop && styles.grid]}
+        >
           {favorites.map((fav) => (
-            <View key={fav.hex} style={styles.item}>
+            <View key={fav.hex} style={[styles.item, desktop && styles.card]}>
               <View
-                style={[styles.swatch, { backgroundColor: fav.hex }]}
+                style={[styles.swatch, desktop && styles.cardSwatch, { backgroundColor: fav.hex }]}
               />
-              <View style={styles.itemInfo}>
+              <View style={[styles.itemInfo, desktop && styles.cardInfo]}>
                 <Text style={styles.itemHex}>{fav.hex}</Text>
                 {fav.name ? (
                   <Text style={styles.itemName}>{fav.name}</Text>
@@ -161,5 +166,30 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.textDim,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    padding: 28,
+  },
+  card: {
+    width: 220,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: THEME.border,
+    padding: 12,
+    gap: 12,
+  },
+  cardSwatch: {
+    width: "100%",
+    height: 96,
+    marginLeft: 0,
+  },
+  cardInfo: {
+    marginLeft: 0,
+    width: "100%",
   },
 });

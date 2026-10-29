@@ -1,17 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Modal,
   TextInput,
-  useWindowDimensions,
+  Platform,
   SafeAreaView,
 } from "react-native";
-import * as Haptics from "expo-haptics";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import * as Haptics from "../utils/haptics";
+import {
+  GestureDetector,
+  ScrollView,
+  useExclusiveGestures,
+  usePanGesture,
+  usePinchGesture,
+  useSimultaneousGestures,
+  useTapGesture,
+} from "react-native-gesture-handler";
+import { AppModal as Modal } from "./AppModal";
+import { useAppViewport, useIsDesktop } from "./AppShell";
+import { railWidthFor } from "./DesktopNav";
+import { webDragStyle } from "../utils/webDrag";
 import {
   runOnJS,
   useSharedValue,
@@ -52,7 +62,8 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const { getDrawing, updateDrawing } = useDrawings();
   const { favorites } = useFavorites();
   const drawing = getDrawing(drawingId);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useAppViewport();
+  const desktop = useIsDesktop();
 
   const [pixels, setPixels] = useState<(string | null)[]>(
     drawing?.pixels ?? []
@@ -124,11 +135,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     };
   }, [drawing?.id, updateDrawing]);
 
-  const maxCanvasSize = Math.min(
-    windowWidth - 32,
-    windowHeight * 0.6,
-    720
-  );
+  const maxCanvasSize = desktop
+    ? Math.min(windowWidth - railWidthFor(windowWidth) - 340 - 64, windowHeight - THEME.desktopPanelTop - 32)
+    : Math.min(windowWidth - 32, windowHeight * 0.6, 720);
   // Snap canvas to an integer multiple of the grid so every cell is identical.
   const canvasSize = drawing
     ? Math.floor(maxCanvasSize / drawing.width) * drawing.width
@@ -229,67 +238,94 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     lastCellRef.current = -1;
   }, []);
 
-  const gesture = useMemo(() => {
-    const tap = Gesture.Tap().onStart((e) => {
-      runOnJS(handleGesturePoint)(e.x, e.y);
-      runOnJS(handleGestureEnd)();
-    });
-    const paintPan = Gesture.Pan()
-      .maxPointers(1)
-      .minDistance(0)
-      .onStart((e) => {
-        runOnJS(handleGesturePoint)(e.x, e.y);
-      })
-      .onUpdate((e) => {
-        runOnJS(handleGesturePoint)(e.x, e.y);
-      })
-      .onEnd(() => {
-        runOnJS(handleGestureEnd)();
-      })
-      .onFinalize(() => {
-        runOnJS(handleGestureEnd)();
-      });
+  const paintRef = useRef(handleGesturePoint);
+  const endRef = useRef(handleGestureEnd);
+  paintRef.current = handleGesturePoint;
+  endRef.current = handleGestureEnd;
+  const paintAt = useCallback((x: number, y: number) => {
+    paintRef.current(x, y);
+  }, []);
+  const paintEnd = useCallback(() => {
+    endRef.current();
+  }, []);
 
-    const pinch = Gesture.Pinch()
-      .onStart(() => {
-        savedScale.value = scale.value;
-      })
-      .onUpdate((e) => {
-        const MIN = 1;
-        const MAX = 8;
-        let next = savedScale.value * e.scale;
-        if (next < MIN) next = MIN;
-        if (next > MAX) next = MAX;
-        scale.value = next;
-      })
-      .onEnd(() => {
-        savedScale.value = scale.value;
-      });
+  const tap = useTapGesture({
+    onActivate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+      runOnJS(paintEnd)();
+    },
+  });
+  const paintPan = usePanGesture({
+    maxPointers: 1,
+    minDistance: 0,
+    onActivate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+    },
+    onUpdate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+    },
+    onDeactivate: () => {
+      runOnJS(paintEnd)();
+    },
+    onFinalize: () => {
+      runOnJS(paintEnd)();
+    },
+  });
+  const pinch = usePinchGesture({
+    onActivate: () => {
+      savedScale.value = scale.value;
+    },
+    onUpdate: (e) => {
+      const MIN = 1;
+      const MAX = 8;
+      let next = savedScale.value * e.scale;
+      if (next < MIN) next = MIN;
+      if (next > MAX) next = MAX;
+      scale.value = next;
+    },
+    onDeactivate: () => {
+      savedScale.value = scale.value;
+    },
+  });
+  const twoFingerPan = usePanGesture({
+    minPointers: 2,
+    maxPointers: 2,
+    onActivate: () => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    },
+    onUpdate: (e) => {
+      translateX.value = savedTranslateX.value + e.translationX;
+      translateY.value = savedTranslateY.value + e.translationY;
+    },
+    onDeactivate: () => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    },
+  });
+  const paintOrTap = useExclusiveGestures(paintPan, tap);
+  const gesture = useSimultaneousGestures(paintOrTap, pinch, twoFingerPan);
 
-    const twoFingerPan = Gesture.Pan()
-      .minPointers(2)
-      .maxPointers(2)
-      .onStart(() => {
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
-      })
-      .onUpdate((e) => {
-        translateX.value = savedTranslateX.value + e.translationX;
-        translateY.value = savedTranslateY.value + e.translationY;
-      })
-      .onEnd(() => {
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
-      });
-
-    return Gesture.Simultaneous(
-      Gesture.Exclusive(paintPan, tap),
-      pinch,
-      twoFingerPan
-    );
-    // Shared values are stable refs — not in deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleGesturePoint, handleGestureEnd]);
+  const canvasHostRef = useRef<React.ComponentRef<typeof View>>(null);
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const node = canvasHostRef.current as unknown as HTMLElement | null;
+    if (!node || typeof node.addEventListener !== "function") return;
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const min = 1;
+      const max = 8;
+      const factor = Math.exp(-event.deltaY * 0.002);
+      let next = scaleRef.current * factor;
+      if (next < min) next = min;
+      if (next > max) next = max;
+      scaleRef.current = next;
+      scale.value = next;
+      savedScale.value = next;
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [savedScale, scale]);
 
   const resetView = useCallback(() => {
     scale.value = 1;
@@ -349,7 +385,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           scale
         );
         setExportStatus(
-          `SAVED ${result.width}x${result.height} TO PHOTOS`
+          Platform.OS === "web"
+            ? `DOWNLOADED ${result.width}x${result.height} PNG`
+            : `SAVED ${result.width}x${result.height} TO PHOTOS`
         );
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch (err) {
@@ -389,6 +427,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
 
   return (
     <View style={styles.root}>
+      {!desktop && (
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <TouchableOpacity onPress={onBack} style={styles.backButtonContainer}>
@@ -401,13 +440,16 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           DRAW · {drawing.width}x{drawing.height}
         </Text>
       </View>
+      )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, desktop && styles.workbenchContent]}>
         {/* Canvas */}
         <GestureDetector gesture={gesture}>
           <View
+            ref={canvasHostRef}
             style={[
               styles.canvasWrapper,
+              webDragStyle,
               {
                 width: canvasSize + CANVAS_BORDER * 2,
                 height: canvasSize + CANVAS_BORDER * 2,
@@ -428,9 +470,23 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           </View>
         </GestureDetector>
 
+        <View style={desktop ? styles.toolColumn : undefined}>
+        {desktop && (
+          <TouchableOpacity onPress={onBack} style={styles.galleryLink}>
+            <Text style={styles.galleryLinkText}>{"<"} GALLERY</Text>
+          </TouchableOpacity>
+        )}
+        {desktop && (
+          <Text style={styles.toolColumnLabel}>
+            {drawing.width}x{drawing.height} · WHEEL ZOOMS
+          </Text>
+        )}
         {/* Tools — 3x2 grid: CLEAR UNDO FIT / PEN ERASE FILL */}
         <View
-          style={[styles.toolGrid, { width: canvasSize + CANVAS_BORDER * 2 }]}
+          style={[
+            styles.toolGrid,
+            { width: desktop ? 300 : canvasSize + CANVAS_BORDER * 2 },
+          ]}
         >
           <View style={styles.toolRow}>
             <TouchableOpacity
@@ -462,13 +518,13 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
                   style={[
                     styles.toolButton,
                     styles.toolButtonFlex,
-                    active && styles.toolButtonActive,
+                    active && (desktop ? styles.toolButtonActiveDesktop : styles.toolButtonActive),
                   ]}
                 >
                   <Text
                     style={[
                       styles.toolButtonText,
-                      active && styles.toolButtonTextActive,
+                      active && (desktop ? styles.toolButtonTextActiveDesktop : styles.toolButtonTextActive),
                     ]}
                   >
                     {t.label}
@@ -495,13 +551,14 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
             onPress={() => setTool("eyedropper")}
             style={[
               styles.toolButton,
-              tool === "eyedropper" && styles.toolButtonActive,
+              tool === "eyedropper" && (desktop ? styles.toolButtonActiveDesktop : styles.toolButtonActive),
             ]}
           >
             <Text
               style={[
                 styles.toolButtonText,
-                tool === "eyedropper" && styles.toolButtonTextActive,
+                tool === "eyedropper" &&
+                  (desktop ? styles.toolButtonTextActiveDesktop : styles.toolButtonTextActive),
               ]}
             >
               PICK
@@ -510,15 +567,15 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         </View>
 
         {/* Favorites palette */}
-        <View style={styles.paletteSection}>
-          <Text style={styles.paletteLabel}>LIBRARY</Text>
+        <View style={[styles.paletteSection, desktop && styles.paletteSectionLeft]}>
+          <Text style={[styles.paletteLabel, desktop && styles.paletteLabelLeft]}>LIBRARY</Text>
           {favorites.length === 0 ? (
             <Text style={styles.paletteEmpty}>NO SAVED COLORS YET</Text>
           ) : (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.paletteRow}
+              contentContainerStyle={[styles.paletteRow, desktop && styles.paletteRowLeft]}
             >
               {favorites.map((fav) => {
                 const selected =
@@ -548,13 +605,16 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
             setExportStatus("");
             setExportModalOpen(true);
           }}
-          style={styles.exportButton}
+          style={[styles.exportButton, desktop && styles.exportButtonNeutral]}
         >
-          <Text style={styles.exportButtonText}>EXPORT PNG</Text>
+          <Text style={[styles.exportButtonText, desktop && styles.exportButtonTextNeutral]}>
+            EXPORT PNG
+          </Text>
         </TouchableOpacity>
         {exportStatus ? (
           <Text style={styles.exportStatus}>{exportStatus}</Text>
         ) : null}
+        </View>
       </ScrollView>
 
       {/* Hex input modal */}
@@ -607,7 +667,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         visible={exportModalOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => !exportBusy && setExportModalOpen(false)}
+        onRequestClose={() => {
+          if (!exportBusy) setExportModalOpen(false);
+        }}
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>
@@ -794,6 +856,32 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingHorizontal: 16,
   },
+  workbenchContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 28,
+    paddingTop: THEME.desktopPanelTop,
+    paddingHorizontal: 28,
+  },
+  toolColumn: {
+    width: 320,
+    alignItems: "flex-start",
+  },
+  toolColumnLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+    marginBottom: 16,
+  },
+  galleryLink: {
+    marginBottom: 16,
+  },
+  galleryLinkText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
+  },
   canvasWrapper: {
     borderWidth: 2,
     borderColor: THEME.border,
@@ -831,6 +919,12 @@ const styles = StyleSheet.create({
   toolButtonTextActive: {
     color: THEME.text,
   },
+  toolButtonActiveDesktop: {
+    borderColor: "#ffffff",
+  },
+  toolButtonTextActiveDesktop: {
+    color: "#ffffff",
+  },
   colorRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -859,11 +953,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  paletteSectionLeft: {
+    alignItems: "flex-start",
+  },
   paletteLabel: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
     marginBottom: 6,
+  },
+  paletteLabelLeft: {
+    alignSelf: "flex-start",
+    textAlign: "left",
   },
   paletteEmpty: {
     fontFamily: THEME.fontFamily,
@@ -873,6 +974,10 @@ const styles = StyleSheet.create({
   paletteRow: {
     gap: 8,
     paddingHorizontal: 8,
+  },
+  paletteRowLeft: {
+    paddingHorizontal: 0,
+    justifyContent: "flex-start",
   },
   paletteSwatch: {
     width: 32,
@@ -894,6 +999,14 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  exportButtonNeutral: {
+    borderColor: THEME.border,
+    alignSelf: "stretch",
+  },
+  exportButtonTextNeutral: {
+    color: THEME.textDim,
+    textAlign: "center",
   },
   exportStatus: {
     fontFamily: THEME.fontFamily,

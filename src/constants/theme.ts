@@ -1,12 +1,16 @@
 export const THEME = {
   bg: "#0a0a0a",
+  stage: "#000000",
   bgSecondary: "#1a1a1a",
   accent: "#00e5ff",
   accentDim: "#007a8a",
   text: "#c0ffc0",
   textBright: "#00ff41",
   textDim: "#4a6a4a",
+  railIdle: "#8FA88F",
   border: "#2a3a2a",
+  // Rail wordmark starts 28px down and is 22px tall. Right panels begin 24px under that line.
+  desktopPanelTop: 28 + 22 + 24,
   fontFamily: "PressStart2P_400Regular",
   fontSizeSmall: 8,
   fontSizeMedium: 12,

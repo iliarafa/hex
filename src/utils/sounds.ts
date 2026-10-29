@@ -20,9 +20,31 @@ function getPlayer(name: SoundName): AudioPlayer {
 }
 
 let muted = false;
+let webAudioUnlocked = false;
 
 export function isMuted(): boolean {
   return muted;
+}
+
+/**
+ * Browsers block audio until a user gesture. Call this synchronously from
+ * pointerdown/keydown so later play() calls are allowed.
+ */
+export function unlockWebAudio(): void {
+  if (webAudioUnlocked) return;
+  try {
+    (Object.keys(soundFiles) as SoundName[]).forEach((name) => {
+      const player = getPlayer(name);
+      player.muted = true;
+      player.play();
+      player.pause();
+      player.seekTo(0);
+      player.muted = false;
+    });
+    webAudioUnlocked = true;
+  } catch {
+    // Try again on the next gesture if a player is not ready yet.
+  }
 }
 
 export function setMuted(value: boolean): void {

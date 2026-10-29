@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Platform, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 
 export type ModeKey =
@@ -30,6 +30,38 @@ const MODES: {
 ];
 
 export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSelect, onSettings }) => {
+  const [cursor, setCursor] = useState<number | null>(null);
+  const cursorRef = useRef<number | null>(null);
+  cursorRef.current = cursor;
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (event.key >= "1" && event.key <= String(MODES.length)) {
+        event.preventDefault();
+        onSelect(MODES[Number(event.key) - 1].key);
+        return;
+      }
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        setCursor((current) => {
+          const start = current ?? (event.key === "ArrowDown" ? -1 : 0);
+          const delta = event.key === "ArrowDown" ? 1 : -1;
+          return (start + delta + MODES.length) % MODES.length;
+        });
+        return;
+      }
+      if (event.key === "Enter" && cursorRef.current !== null) {
+        event.preventDefault();
+        onSelect(MODES[cursorRef.current].key);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onSelect]);
+
   return (
     <View style={styles.root}>
       <View style={styles.treeContainer}>
@@ -55,7 +87,9 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({ onBack, onSe
                 onPress={() => onSelect(mode.key)}
               >
                 <Text style={styles.treeLine}>{branch}</Text>
-                <Text style={styles.branchLabel}>{mode.label}</Text>
+                <Text style={[styles.branchLabel, cursor === i && styles.branchLabelActive]}>
+                  {mode.label}
+                </Text>
               </TouchableOpacity>
 
               <View style={styles.branchRow}>
@@ -141,6 +175,9 @@ const styles = StyleSheet.create({
     fontSize: THEME.fontSizeLarge,
     color: THEME.text,
     lineHeight: 22,
+  },
+  branchLabelActive: {
+    color: THEME.accent,
   },
   branchDesc: {
     fontFamily: THEME.fontFamily,

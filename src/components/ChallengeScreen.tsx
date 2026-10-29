@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { THEME } from "../constants/theme";
 import { PuzzleGrid } from "./PuzzleGrid";
+import { useIsDesktop } from "./AppShell";
 import { generatePuzzle, Tile } from "../utils/puzzle";
 import { hslToHex } from "../utils/color";
 
@@ -46,8 +47,52 @@ export const ChallengeScreen: React.FC<ChallengeScreenProps> = ({ onBack }) => {
   }, []);
 
   const accentColor = hslToHex(hue, 60, 50);
+  const desktop = useIsDesktop();
+  const [playSize, setPlaySize] = useState({ width: 0, height: 0 });
+  const playWidth = Math.max(160, Math.min(playSize.width - 48, playSize.height - 48));
 
-  // Game screen
+  const status = solved ? (
+    <View style={styles.solvedContainer}>
+      <Text style={[styles.solvedText, { color: accentColor }]}>SOLVED!</Text>
+      <Text style={[styles.timeText, { color: accentColor }]}>{elapsed.toFixed(1)}s</Text>
+      <TouchableOpacity style={[styles.newGameButton, { borderColor: accentColor }]} onPress={startGame}>
+        <Text style={[styles.newGameText, { color: accentColor }]}>NEW GAME</Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <Text style={[styles.timerText, { color: accentColor }]}>{elapsed.toFixed(1)}s</Text>
+  );
+
+  if (desktop) {
+    return (
+      <View style={styles.desktopRoot}>
+        <View
+          style={styles.desktopPlay}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            setPlaySize((prev) =>
+              prev.width === width && prev.height === height ? prev : { width, height }
+            );
+          }}
+        >
+          {playSize.width > 0 && (
+            <PuzzleGrid
+              tiles={tiles}
+              onTilesChange={setTiles}
+              onSolved={handleSolved}
+              availableWidth={playWidth}
+            />
+          )}
+        </View>
+        <View style={styles.sidePanel}>
+          <Text style={[styles.sideKicker, { color: accentColor }]}>SHADES</Text>
+          <Text style={styles.sideLabel}>TIME</Text>
+          {status}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       <View style={styles.header}>
@@ -159,5 +204,35 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  desktopRoot: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: THEME.bg,
+  },
+  desktopPlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sidePanel: {
+    width: 280,
+    borderLeftWidth: 1,
+    borderLeftColor: THEME.border,
+    paddingHorizontal: 28,
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 28,
+    justifyContent: "flex-start",
+    gap: 16,
+  },
+  sideKicker: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeLarge,
+    marginBottom: 12,
+  },
+  sideLabel: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeSmall,
+    color: THEME.textDim,
   },
 });
