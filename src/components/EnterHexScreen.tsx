@@ -5,8 +5,9 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  type TextInputInstance,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { colorNameToHex } from "../utils/colorNames";
 import { useFavorites } from "../context/FavoritesContext";
@@ -25,7 +26,7 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
   const [resolvedHex, setResolvedHex] = useState("");
   const [resolvedName, setResolvedName] = useState("");
   const [error, setError] = useState("");
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { toggleFavorite, isFav } = useFavorites();
 
   const isValid =
@@ -183,6 +184,8 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
                 placeholderTextColor={THEME.border}
                 selectionColor={THEME.text}
                 onSubmitEditing={handleSubmit}
+                returnKeyType="go"
+                enterKeyHint="go"
               />
             </View>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}

@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, useWindowDimensions } from "react-native";
-import * as Haptics from "expo-haptics";
+import React, { useCallback } from "react";
+import { View, StyleSheet } from "react-native";
+import * as Haptics from "../utils/haptics";
+import { useAppViewport } from "./AppShell";
 import { DraggableTile } from "./DraggableTile";
 import { Tile, isSolved } from "../utils/puzzle";
 import { playSound } from "../utils/sounds";
@@ -16,16 +17,11 @@ export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
   onTilesChange,
   onSolved,
 }) => {
-  const { width } = useWindowDimensions();
+  const { width } = useAppViewport();
   const gridWidth = width - 40; // 20px padding each side
   const tileWidth = gridWidth / 4;
   const tileHeight = tileWidth / 2;
   const gridHeight = tileHeight * 8;
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-
-  const handleDragStart = useCallback((index: number) => {
-    setDragIndex(index);
-  }, []);
 
   const handleDragEnd = useCallback(
     (index: number, translationX: number, translationY: number) => {
@@ -60,7 +56,6 @@ export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
         }
       }
 
-      setDragIndex(null);
     },
     [tiles, tileWidth, tileHeight, onTilesChange, onSolved]
   );
@@ -73,7 +68,7 @@ export const PuzzleGrid: React.FC<PuzzleGridProps> = ({
           color={tile.color}
           width={tileWidth}
           height={tileHeight}
-          onDragStart={() => handleDragStart(index)}
+          onDragStart={() => {}}
           onDragEnd={(tx, ty) => handleDragEnd(index, tx, ty)}
         />
       ))}

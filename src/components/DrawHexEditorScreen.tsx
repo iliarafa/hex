@@ -1,17 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Modal,
   TextInput,
-  useWindowDimensions,
+  Platform,
   SafeAreaView,
 } from "react-native";
-import * as Haptics from "expo-haptics";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import * as Haptics from "../utils/haptics";
+import {
+  GestureDetector,
+  ScrollView,
+  useExclusiveGestures,
+  usePanGesture,
+  usePinchGesture,
+  useSimultaneousGestures,
+  useTapGesture,
+} from "react-native-gesture-handler";
+import { AppModal as Modal } from "./AppModal";
+import { useAppViewport } from "./AppShell";
+import { webDragStyle } from "../utils/webDrag";
 import {
   runOnJS,
   useSharedValue,
@@ -52,7 +61,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   const { getDrawing, updateDrawing } = useDrawings();
   const { favorites } = useFavorites();
   const drawing = getDrawing(drawingId);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useAppViewport();
 
   const [pixels, setPixels] = useState<(string | null)[]>(
     drawing?.pixels ?? []
@@ -229,67 +238,94 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
     lastCellRef.current = -1;
   }, []);
 
-  const gesture = useMemo(() => {
-    const tap = Gesture.Tap().onStart((e) => {
-      runOnJS(handleGesturePoint)(e.x, e.y);
-      runOnJS(handleGestureEnd)();
-    });
-    const paintPan = Gesture.Pan()
-      .maxPointers(1)
-      .minDistance(0)
-      .onStart((e) => {
-        runOnJS(handleGesturePoint)(e.x, e.y);
-      })
-      .onUpdate((e) => {
-        runOnJS(handleGesturePoint)(e.x, e.y);
-      })
-      .onEnd(() => {
-        runOnJS(handleGestureEnd)();
-      })
-      .onFinalize(() => {
-        runOnJS(handleGestureEnd)();
-      });
+  const paintRef = useRef(handleGesturePoint);
+  const endRef = useRef(handleGestureEnd);
+  paintRef.current = handleGesturePoint;
+  endRef.current = handleGestureEnd;
+  const paintAt = useCallback((x: number, y: number) => {
+    paintRef.current(x, y);
+  }, []);
+  const paintEnd = useCallback(() => {
+    endRef.current();
+  }, []);
 
-    const pinch = Gesture.Pinch()
-      .onStart(() => {
-        savedScale.value = scale.value;
-      })
-      .onUpdate((e) => {
-        const MIN = 1;
-        const MAX = 8;
-        let next = savedScale.value * e.scale;
-        if (next < MIN) next = MIN;
-        if (next > MAX) next = MAX;
-        scale.value = next;
-      })
-      .onEnd(() => {
-        savedScale.value = scale.value;
-      });
+  const tap = useTapGesture({
+    onActivate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+      runOnJS(paintEnd)();
+    },
+  });
+  const paintPan = usePanGesture({
+    maxPointers: 1,
+    minDistance: 0,
+    onActivate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+    },
+    onUpdate: (e) => {
+      runOnJS(paintAt)(e.x, e.y);
+    },
+    onDeactivate: () => {
+      runOnJS(paintEnd)();
+    },
+    onFinalize: () => {
+      runOnJS(paintEnd)();
+    },
+  });
+  const pinch = usePinchGesture({
+    onActivate: () => {
+      savedScale.value = scale.value;
+    },
+    onUpdate: (e) => {
+      const MIN = 1;
+      const MAX = 8;
+      let next = savedScale.value * e.scale;
+      if (next < MIN) next = MIN;
+      if (next > MAX) next = MAX;
+      scale.value = next;
+    },
+    onDeactivate: () => {
+      savedScale.value = scale.value;
+    },
+  });
+  const twoFingerPan = usePanGesture({
+    minPointers: 2,
+    maxPointers: 2,
+    onActivate: () => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    },
+    onUpdate: (e) => {
+      translateX.value = savedTranslateX.value + e.translationX;
+      translateY.value = savedTranslateY.value + e.translationY;
+    },
+    onDeactivate: () => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    },
+  });
+  const paintOrTap = useExclusiveGestures(paintPan, tap);
+  const gesture = useSimultaneousGestures(paintOrTap, pinch, twoFingerPan);
 
-    const twoFingerPan = Gesture.Pan()
-      .minPointers(2)
-      .maxPointers(2)
-      .onStart(() => {
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
-      })
-      .onUpdate((e) => {
-        translateX.value = savedTranslateX.value + e.translationX;
-        translateY.value = savedTranslateY.value + e.translationY;
-      })
-      .onEnd(() => {
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
-      });
-
-    return Gesture.Simultaneous(
-      Gesture.Exclusive(paintPan, tap),
-      pinch,
-      twoFingerPan
-    );
-    // Shared values are stable refs — not in deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleGesturePoint, handleGestureEnd]);
+  const canvasHostRef = useRef<React.ComponentRef<typeof View>>(null);
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const node = canvasHostRef.current as unknown as HTMLElement | null;
+    if (!node || typeof node.addEventListener !== "function") return;
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const min = 1;
+      const max = 8;
+      const factor = Math.exp(-event.deltaY * 0.002);
+      let next = scaleRef.current * factor;
+      if (next < min) next = min;
+      if (next > max) next = max;
+      scaleRef.current = next;
+      scale.value = next;
+      savedScale.value = next;
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [savedScale, scale]);
 
   const resetView = useCallback(() => {
     scale.value = 1;
@@ -349,7 +385,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
           scale
         );
         setExportStatus(
-          `SAVED ${result.width}x${result.height} TO PHOTOS`
+          Platform.OS === "web"
+            ? `DOWNLOADED ${result.width}x${result.height} PNG`
+            : `SAVED ${result.width}x${result.height} TO PHOTOS`
         );
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch (err) {
@@ -406,8 +444,10 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         {/* Canvas */}
         <GestureDetector gesture={gesture}>
           <View
+            ref={canvasHostRef}
             style={[
               styles.canvasWrapper,
+              webDragStyle,
               {
                 width: canvasSize + CANVAS_BORDER * 2,
                 height: canvasSize + CANVAS_BORDER * 2,
@@ -607,7 +647,9 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         visible={exportModalOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => !exportBusy && setExportModalOpen(false)}
+        onRequestClose={() => {
+          if (!exportBusy) setExportModalOpen(false);
+        }}
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>

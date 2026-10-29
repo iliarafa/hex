@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Platform } from "react-native";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,9 +11,10 @@ import Animated, {
   interpolateColor,
   runOnJS,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { playSound } from "../utils/sounds";
+import { webDragStyle } from "../utils/webDrag";
 
 const GAME_DURATION = 45;
 
@@ -143,24 +144,47 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
   }));
 
   const answered = useSharedValue(false);
+  const answerRef = useRef(handleAnswer);
+  answerRef.current = handleAnswer;
+  const answerFromGesture = useCallback((playerAnswer: boolean) => {
+    answerRef.current(playerAnswer);
+  }, []);
 
-  const swipeGesture = Gesture.Pan()
-    .onBegin(() => {
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        answerRef.current(true);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        answerRef.current(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const swipeGesture = usePanGesture({
+    onBegin: () => {
       answered.value = false;
-    })
-    .onChange((e) => {
+    },
+    onUpdate: (e) => {
       translateX.value = e.translationX;
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       if (translateX.value > SWIPE_THRESHOLD && !answered.value) {
         answered.value = true;
-        runOnJS(handleAnswer)(true);
+        runOnJS(answerFromGesture)(true);
       } else if (translateX.value < -SWIPE_THRESHOLD && !answered.value) {
         answered.value = true;
-        runOnJS(handleAnswer)(false);
+        runOnJS(answerFromGesture)(false);
       }
       translateX.value = withSpring(0);
-    });
+    },
+  });
 
   const correctGlowStyle = useAnimatedStyle(() => ({
     shadowColor: "#00ff41",
@@ -196,7 +220,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
       {!gameOver ? (
         <GestureDetector gesture={swipeGesture}>
-          <Animated.View style={styles.content}>
+          <Animated.View style={[styles.content, webDragStyle]}>
             <View style={styles.upperArea}>
               <Text style={styles.title}>COLOR MATCH</Text>
               <Text style={styles.question}>

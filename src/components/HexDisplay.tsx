@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import * as Clipboard from "expo-clipboard";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
+import { copyText } from "../utils/clipboard";
 import { THEME } from "../constants/theme";
 import { hexToRgb } from "../utils/color";
 import { useFavorites } from "../context/FavoritesContext";
@@ -24,7 +24,7 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex }) => {
   }, []);
 
   const handleCopy = useCallback(async () => {
-    await Clipboard.setStringAsync(hex);
+    await copyText(hex);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setCopied(true);
     if (timerRef.current) clearTimeout(timerRef.current);

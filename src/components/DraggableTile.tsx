@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import { StyleSheet } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,8 +8,9 @@ import Animated, {
   runOnJS,
   LinearTransition,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as Haptics from "../utils/haptics";
 import { playSound } from "../utils/sounds";
+import { webDragStyle } from "../utils/webDrag";
 
 interface DraggableTileProps {
   color: string;
@@ -31,27 +32,35 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
   const scale = useSharedValue(1);
   const zIndex = useSharedValue(0);
 
-  const gesture = Gesture.Pan()
-    .onBegin(() => {
+  const startRef = useRef(onDragStart);
+  const endRef = useRef(onDragEnd);
+  startRef.current = onDragStart;
+  endRef.current = onDragEnd;
+  const callStart = useCallback(() => startRef.current(), []);
+  const callEnd = useCallback((x: number, y: number) => endRef.current(x, y), []);
+
+  const gesture = usePanGesture({
+    onBegin: () => {
       scale.value = withSpring(1.15);
       zIndex.value = 100;
-      runOnJS(onDragStart)();
+      runOnJS(callStart)();
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
       runOnJS(playSound)("lift");
-    })
-    .onChange((e) => {
+    },
+    onUpdate: (e) => {
       translateX.value = e.translationX;
       translateY.value = e.translationY;
-    })
-    .onEnd((e) => {
-      runOnJS(onDragEnd)(e.translationX, e.translationY);
+    },
+    onDeactivate: (e) => {
+      runOnJS(callEnd)(e.translationX, e.translationY);
       translateX.value = withSpring(0);
       translateY.value = withSpring(0);
       scale.value = withSpring(1);
       zIndex.value = 0;
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
       runOnJS(playSound)("place");
-    });
+    },
+  });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -69,6 +78,7 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
         style={[
           { width, height, backgroundColor: color },
           styles.tile,
+          webDragStyle,
           animatedStyle,
         ]}
       />

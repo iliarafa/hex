@@ -1,5 +1,6 @@
 export const THEME = {
   bg: "#0a0a0a",
+  stage: "#000000",
   bgSecondary: "#1a1a1a",
   accent: "#00e5ff",
   accentDim: "#007a8a",

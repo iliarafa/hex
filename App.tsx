@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -20,6 +20,9 @@ import { DrawHexEditorScreen } from "./src/components/DrawHexEditorScreen";
 import { FavoritesProvider } from "./src/context/FavoritesContext";
 import { DrawingsProvider } from "./src/context/DrawingsContext";
 import { THEME } from "./src/constants/theme";
+import { AppShell } from "./src/components/AppShell";
+import { useBackHandler } from "./src/utils/backHandler";
+import { dismissWebBoot } from "./src/utils/webShell";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
@@ -46,11 +49,30 @@ export default function App() {
     []
   );
 
+  useEffect(() => {
+    if (Platform.OS === "web") dismissWebBoot();
+  }, []);
+
+  useBackHandler(0, screen !== "landing", () => {
+    if (screen === "drawHexEditor") {
+      setEditingDrawingId(null);
+      setScreen("drawHexGallery");
+      return;
+    }
+    if (screen === "mode") {
+      setScreen("landing");
+      return;
+    }
+    setScreen("mode");
+  });
+
   if (!fontsLoaded) {
     return (
-      <View style={styles.loading}>
-        <Text style={{ color: THEME.textBright }}>LOADING...</Text>
-      </View>
+      <AppShell>
+        <View style={styles.loading}>
+          <Text style={{ color: THEME.textBright }}>LOADING...</Text>
+        </View>
+      </AppShell>
     );
   }
 
@@ -154,6 +176,7 @@ export default function App() {
   };
 
   return (
+    <AppShell>
     <FavoritesProvider>
       <DrawingsProvider>
         <GestureHandlerRootView style={styles.root}>
@@ -169,6 +192,7 @@ export default function App() {
         </GestureHandlerRootView>
       </DrawingsProvider>
     </FavoritesProvider>
+    </AppShell>
   );
 }
 

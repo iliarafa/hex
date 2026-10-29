@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Modal,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import { AppModal as Modal } from "./AppModal";
+import * as Haptics from "../utils/haptics";
 import { THEME } from "../constants/theme";
 import { useDrawings } from "../context/DrawingsContext";
 import { PixelSize } from "../utils/drawings";

@@ -1,5 +1,6 @@
 import React from "react";
-import { useWindowDimensions } from "react-native";
+import { useAppViewport } from "./AppShell";
+import { webDragStyle } from "../utils/webDrag";
 import {
   Canvas,
   Line,
@@ -7,7 +8,7 @@ import {
   Shader,
   Skia,
 } from "@shopify/react-native-skia";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import {
   useSharedValue,
   useDerivedValue,
@@ -62,7 +63,7 @@ export const ColorSpectrum: React.FC<ColorSpectrumProps> = ({
   height,
   onColorChange,
 }) => {
-  const { width } = useWindowDimensions();
+  const { width } = useAppViewport();
   const canvasWidth = width;
   const canvasHeight = height;
 
@@ -82,17 +83,19 @@ export const ColorSpectrum: React.FC<ColorSpectrumProps> = ({
     onColorChange(hex, h, s, l);
   };
 
-  const gesture = Gesture.Pan()
-    .onBegin((e) => {
+  const gesture = usePanGesture({
+    minDistance: 0,
+    onBegin: (e) => {
       crosshairX.value = e.x;
       crosshairY.value = e.y;
       runOnJS(updateColor)(e.x, e.y);
-    })
-    .onChange((e) => {
+    },
+    onUpdate: (e) => {
       crosshairX.value = Math.max(0, Math.min(e.x, canvasWidth));
       crosshairY.value = Math.max(0, Math.min(e.y, canvasHeight));
       runOnJS(updateColor)(e.x, e.y);
-    });
+    },
+  });
 
   const gap = SPECTRUM.crosshairGap;
   const len = SPECTRUM.crosshairLength;
@@ -136,7 +139,13 @@ export const ColorSpectrum: React.FC<ColorSpectrumProps> = ({
 
   return (
     <GestureDetector gesture={gesture}>
-      <Canvas style={{ width: canvasWidth, height: canvasHeight }}>
+      <Canvas
+        style={{
+          width: canvasWidth,
+          height: canvasHeight,
+          ...webDragStyle,
+        }}
+      >
         <Fill>
           <Shader
             source={SPECTRUM_SHADER}
