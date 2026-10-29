@@ -20,6 +20,7 @@ import {
 } from "react-native-gesture-handler";
 import { AppModal as Modal } from "./AppModal";
 import { useAppViewport, useIsDesktop } from "./AppShell";
+import { railWidthFor } from "./DesktopNav";
 import { webDragStyle } from "../utils/webDrag";
 import {
   runOnJS,
@@ -135,7 +136,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   }, [drawing?.id, updateDrawing]);
 
   const maxCanvasSize = desktop
-    ? Math.min(windowWidth - 200 - 340 - 64, windowHeight - THEME.desktopPanelTop - 32)
+    ? Math.min(windowWidth - railWidthFor(windowWidth) - 340 - 64, windowHeight - THEME.desktopPanelTop - 32)
     : Math.min(windowWidth - 32, windowHeight * 0.6, 720);
   // Snap canvas to an integer multiple of the grid so every cell is identical.
   const canvasSize = drawing

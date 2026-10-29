@@ -1,6 +1,24 @@
 import React, { useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { THEME } from "../constants/theme";
+
+/**
+ * React Native Web drops CSS clamp() strings, so the rail width is computed
+ * here. 10.42vw is 200px at 1920; the floor stays at 220 so "> COLOR MATCH"
+ * fits at 12px without clipping.
+ */
+export function railWidthFor(windowWidth: number): number {
+  const scaled = windowWidth * (200 / 1920);
+  return Math.round(Math.min(320, Math.max(220, scaled)));
+}
 
 export type DesktopMode =
   | "picker"
@@ -34,11 +52,13 @@ const webPointer = (
  * selection only; everything else stays dim phosphor.
  */
 export function DesktopNav({ active, onSelect, onSettings }: DesktopNavProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const railWidth = railWidthFor(windowWidth);
   const [hover, setHover] = useState<string | null>(null);
   const drawActive = active === "drawHex" || active === "drawHexGallery" || active === "drawHexEditor";
 
   return (
-    <View style={styles.rail}>
+    <View style={[styles.rail, { width: railWidth }]}>
       <Text style={styles.wordmark}>HEX</Text>
       <Text style={styles.kicker}>CRT COLOR</Text>
 
@@ -56,10 +76,7 @@ export function DesktopNav({ active, onSelect, onSettings }: DesktopNavProps) {
               style={[styles.row, selected && styles.rowSelected, webPointer]}
             >
               <Text style={[styles.hint, selected && styles.hintLive]}>{mode.keyHint}</Text>
-              <Text
-                numberOfLines={1}
-                style={[styles.label, hot && styles.labelHot, selected && styles.labelLive]}
-              >
+              <Text style={[styles.label, hot && styles.labelHot, selected && styles.labelLive]}>
                 {selected ? "> " : ""}
                 {mode.label}
               </Text>
@@ -92,7 +109,7 @@ export function DesktopNav({ active, onSelect, onSettings }: DesktopNavProps) {
 
 const styles = StyleSheet.create({
   rail: {
-    width: "clamp(200px, 10.42vw, 280px)" as unknown as number,
+    flexShrink: 0,
     backgroundColor: THEME.bg,
     borderRightWidth: 1,
     borderRightColor: THEME.border,
@@ -147,7 +164,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: THEME.railIdle,
-    flex: 1,
+    flexShrink: 0,
   },
   labelHot: {
     color: "#e7f0e7",
