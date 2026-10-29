@@ -139,11 +139,13 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
         </View>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <TouchableOpacity
-          style={[styles.actionButton, !isValid && styles.actionButtonDisabled]}
+          style={[styles.actionButton, styles.neutralButton, !isValid && styles.actionButtonDisabled]}
           onPress={handleSubmit}
           disabled={!isValid}
         >
-          <Text style={[styles.actionButtonText, !isValid && styles.actionButtonTextDisabled]}>GO</Text>
+          <Text style={[styles.actionButtonText, styles.neutralButtonText, !isValid && styles.actionButtonTextDisabled]}>
+            GO
+          </Text>
         </TouchableOpacity>
       </View>
     </>
@@ -180,10 +182,10 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
                 </View>
               ) : null}
               <TouchableOpacity
-                style={[styles.saveButton, saved && styles.saveButtonActive]}
+                style={[styles.saveButton, styles.neutralButton]}
                 onPress={handleSave}
               >
-                <Text style={[styles.saveButtonText, saved && styles.saveButtonTextActive]}>
+                <Text style={[styles.saveButtonText, styles.neutralButtonText]}>
                   {saved ? "SAVED" : "SAVE"}
                 </Text>
               </TouchableOpacity>
@@ -467,10 +469,11 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.bg,
   },
   desktopForm: {
-    width: 460,
+    width: 420,
     paddingHorizontal: 36,
-    paddingVertical: 32,
-    justifyContent: "center",
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 32,
+    justifyContent: "flex-start",
     borderRightWidth: 1,
     borderRightColor: THEME.border,
     gap: 8,
@@ -483,9 +486,11 @@ const styles = StyleSheet.create({
   },
   desktopPreview: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    paddingTop: THEME.desktopPanelTop,
+    paddingHorizontal: 40,
+    paddingBottom: 40,
     gap: 20,
   },
   desktopSwatch: {
@@ -521,6 +526,12 @@ const styles = StyleSheet.create({
   standby: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
+    color: THEME.textDim,
+  },
+  neutralButton: {
+    borderColor: THEME.border,
+  },
+  neutralButtonText: {
     color: THEME.textDim,
   },
 });

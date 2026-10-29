@@ -67,21 +67,41 @@ export const HexDisplay: React.FC<HexDisplayProps> = ({ hex, layout = "stack" })
       {/* Button row */}
       <View style={[styles.buttonRow, panel && styles.panelButtons]}>
         <TouchableOpacity
-          style={[styles.actionButton, copied && styles.copyButtonActive]}
+          style={[
+            styles.actionButton,
+            panel && styles.panelButton,
+            copied && !panel && styles.copyButtonActive,
+          ]}
           onPress={handleCopy}
           activeOpacity={0.7}
         >
-          <Text style={[styles.actionText, copied && styles.copyTextActive]}>
+          <Text
+            style={[
+              styles.actionText,
+              panel && styles.panelActionText,
+              copied && !panel && styles.copyTextActive,
+            ]}
+          >
             {copied ? "COPIED!" : "COPY"}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, saved && styles.saveButtonActive]}
+          style={[
+            styles.actionButton,
+            panel && styles.panelButton,
+            saved && !panel && styles.saveButtonActive,
+          ]}
           onPress={handleSave}
           activeOpacity={0.7}
         >
-          <Text style={[styles.actionText, saved && styles.saveTextActive]}>
+          <Text
+            style={[
+              styles.actionText,
+              panel && styles.panelActionText,
+              saved && !panel && styles.saveTextActive,
+            ]}
+          >
             {saved ? "SAVED" : "SAVE"}
           </Text>
         </TouchableOpacity>
@@ -157,8 +177,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: THEME.border,
     paddingHorizontal: 24,
-    paddingVertical: 28,
-    justifyContent: "center",
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 28,
+    justifyContent: "flex-start",
+  },
+  panelButton: {
+    borderColor: THEME.border,
+  },
+  panelActionText: {
+    color: THEME.textDim,
   },
   panelSwatch: {
     height: 140,

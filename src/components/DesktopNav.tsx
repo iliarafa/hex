@@ -56,8 +56,11 @@ export function DesktopNav({ active, onSelect, onSettings }: DesktopNavProps) {
               style={[styles.row, selected && styles.rowSelected, webPointer]}
             >
               <Text style={[styles.hint, selected && styles.hintLive]}>{mode.keyHint}</Text>
-              <Text style={[styles.label, hot && styles.labelHot, selected && styles.labelLive]}>
-                {selected ? "> " : "  "}
+              <Text
+                numberOfLines={1}
+                style={[styles.label, hot && styles.labelHot, selected && styles.labelLive]}
+              >
+                {selected ? "> " : ""}
                 {mode.label}
               </Text>
             </Pressable>
@@ -89,17 +92,18 @@ export function DesktopNav({ active, onSelect, onSettings }: DesktopNavProps) {
 
 const styles = StyleSheet.create({
   rail: {
-    width: 232,
+    width: "clamp(200px, 10.42vw, 280px)" as unknown as number,
     backgroundColor: THEME.bg,
     borderRightWidth: 1,
     borderRightColor: THEME.border,
     paddingTop: 28,
     paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   wordmark: {
     fontFamily: THEME.fontFamily,
     fontSize: 22,
+    lineHeight: 22,
     color: "#ffffff",
     textShadowColor: "#ffffff",
     textShadowOffset: { width: 0, height: 0 },
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: "transparent",
-    gap: 10,
+    gap: 6,
   },
   rowSelected: {
     borderColor: THEME.border,
@@ -131,21 +135,22 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
-    width: 12,
+    fontSize: 11,
+    color: THEME.railIdle,
+    width: 14,
   },
   hintLive: {
     color: THEME.textBright,
   },
   label: {
     fontFamily: THEME.fontFamily,
-    fontSize: 10,
-    color: THEME.textDim,
+    fontSize: 12,
+    lineHeight: 16,
+    color: THEME.railIdle,
     flex: 1,
   },
   labelHot: {
-    color: THEME.text,
+    color: "#e7f0e7",
   },
   labelLive: {
     color: THEME.textBright,
@@ -161,8 +166,9 @@ const styles = StyleSheet.create({
   },
   settingsText: {
     fontFamily: THEME.fontFamily,
-    fontSize: THEME.fontSizeSmall,
-    color: THEME.textDim,
+    fontSize: 12,
+    lineHeight: 16,
+    color: THEME.railIdle,
   },
   scan: {
     position: "absolute",

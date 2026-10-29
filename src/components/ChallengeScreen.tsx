@@ -219,8 +219,10 @@ const styles = StyleSheet.create({
     width: 280,
     borderLeftWidth: 1,
     borderLeftColor: THEME.border,
-    padding: 28,
-    justifyContent: "center",
+    paddingHorizontal: 28,
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 28,
+    justifyContent: "flex-start",
     gap: 16,
   },
   sideKicker: {

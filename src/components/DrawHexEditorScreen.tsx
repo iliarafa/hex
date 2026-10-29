@@ -135,7 +135,7 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
   }, [drawing?.id, updateDrawing]);
 
   const maxCanvasSize = desktop
-    ? Math.min(windowWidth - 232 - 340 - 64, windowHeight - 48)
+    ? Math.min(windowWidth - 200 - 340 - 64, windowHeight - THEME.desktopPanelTop - 32)
     : Math.min(windowWidth - 32, windowHeight * 0.6, 720);
   // Snap canvas to an integer multiple of the grid so every cell is identical.
   const canvasSize = drawing
@@ -517,13 +517,13 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
                   style={[
                     styles.toolButton,
                     styles.toolButtonFlex,
-                    active && styles.toolButtonActive,
+                    active && (desktop ? styles.toolButtonActiveDesktop : styles.toolButtonActive),
                   ]}
                 >
                   <Text
                     style={[
                       styles.toolButtonText,
-                      active && styles.toolButtonTextActive,
+                      active && (desktop ? styles.toolButtonTextActiveDesktop : styles.toolButtonTextActive),
                     ]}
                   >
                     {t.label}
@@ -550,13 +550,14 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
             onPress={() => setTool("eyedropper")}
             style={[
               styles.toolButton,
-              tool === "eyedropper" && styles.toolButtonActive,
+              tool === "eyedropper" && (desktop ? styles.toolButtonActiveDesktop : styles.toolButtonActive),
             ]}
           >
             <Text
               style={[
                 styles.toolButtonText,
-                tool === "eyedropper" && styles.toolButtonTextActive,
+                tool === "eyedropper" &&
+                  (desktop ? styles.toolButtonTextActiveDesktop : styles.toolButtonTextActive),
               ]}
             >
               PICK
@@ -565,15 +566,15 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
         </View>
 
         {/* Favorites palette */}
-        <View style={styles.paletteSection}>
-          <Text style={styles.paletteLabel}>LIBRARY</Text>
+        <View style={[styles.paletteSection, desktop && styles.paletteSectionLeft]}>
+          <Text style={[styles.paletteLabel, desktop && styles.paletteLabelLeft]}>LIBRARY</Text>
           {favorites.length === 0 ? (
             <Text style={styles.paletteEmpty}>NO SAVED COLORS YET</Text>
           ) : (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.paletteRow}
+              contentContainerStyle={[styles.paletteRow, desktop && styles.paletteRowLeft]}
             >
               {favorites.map((fav) => {
                 const selected =
@@ -603,9 +604,11 @@ export const DrawHexEditorScreen: React.FC<DrawHexEditorScreenProps> = ({
             setExportStatus("");
             setExportModalOpen(true);
           }}
-          style={styles.exportButton}
+          style={[styles.exportButton, desktop && styles.exportButtonNeutral]}
         >
-          <Text style={styles.exportButtonText}>EXPORT PNG</Text>
+          <Text style={[styles.exportButtonText, desktop && styles.exportButtonTextNeutral]}>
+            EXPORT PNG
+          </Text>
         </TouchableOpacity>
         {exportStatus ? (
           <Text style={styles.exportStatus}>{exportStatus}</Text>
@@ -857,12 +860,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
     gap: 28,
-    paddingTop: 28,
+    paddingTop: THEME.desktopPanelTop,
     paddingHorizontal: 28,
   },
   toolColumn: {
     width: 320,
-    paddingTop: 8,
+    alignItems: "flex-start",
   },
   toolColumnLabel: {
     fontFamily: THEME.fontFamily,
@@ -915,6 +918,12 @@ const styles = StyleSheet.create({
   toolButtonTextActive: {
     color: THEME.text,
   },
+  toolButtonActiveDesktop: {
+    borderColor: "#ffffff",
+  },
+  toolButtonTextActiveDesktop: {
+    color: "#ffffff",
+  },
   colorRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -943,11 +952,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  paletteSectionLeft: {
+    alignItems: "flex-start",
+  },
   paletteLabel: {
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeSmall,
     color: THEME.textDim,
     marginBottom: 6,
+  },
+  paletteLabelLeft: {
+    alignSelf: "flex-start",
+    textAlign: "left",
   },
   paletteEmpty: {
     fontFamily: THEME.fontFamily,
@@ -957,6 +973,10 @@ const styles = StyleSheet.create({
   paletteRow: {
     gap: 8,
     paddingHorizontal: 8,
+  },
+  paletteRowLeft: {
+    paddingHorizontal: 0,
+    justifyContent: "flex-start",
   },
   paletteSwatch: {
     width: 32,
@@ -978,6 +998,14 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     fontSize: THEME.fontSizeMedium,
     color: THEME.text,
+  },
+  exportButtonNeutral: {
+    borderColor: THEME.border,
+    alignSelf: "stretch",
+  },
+  exportButtonTextNeutral: {
+    color: THEME.textDim,
+    textAlign: "center",
   },
   exportStatus: {
     fontFamily: THEME.fontFamily,

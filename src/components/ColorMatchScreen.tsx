@@ -217,7 +217,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
       <Text style={styles.sideLabel}>TIME</Text>
       <Text style={[styles.timerText, desktop && styles.sideValue]}>{remaining.toFixed(1)}s</Text>
       <Text style={styles.sideLabel}>SCORE</Text>
-      <Text style={[styles.scoreLive, desktop && styles.sideValue]}>
+      <Text style={[styles.scoreLive, desktop && styles.sideLive]}>
         {score}/{total}
       </Text>
       <Text style={styles.sideLabel}>HIT</Text>
@@ -245,8 +245,8 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
 
       {!gameOver ? (
         <GestureDetector gesture={swipeGesture}>
-          <Animated.View style={[styles.content, webDragStyle]}>
-            <View style={styles.upperArea}>
+          <Animated.View style={[styles.content, desktop && styles.desktopPlayColumn, webDragStyle]}>
+            <View style={desktop ? styles.desktopUpper : styles.upperArea}>
               <Text style={styles.title}>COLOR MATCH</Text>
               <Text style={styles.question}>
                 DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
@@ -272,6 +272,16 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
               </View>
             </View>
 
+            {desktop ? (
+              <View style={styles.desktopAnswers}>
+                <Pressable style={styles.answerButton} onPress={() => handleAnswer(false)}>
+                  <Text style={styles.answerButtonText}>NO  [←]</Text>
+                </Pressable>
+                <Pressable style={styles.answerButton} onPress={() => handleAnswer(true)}>
+                  <Text style={styles.answerButtonText}>YES  [→]</Text>
+                </Pressable>
+              </View>
+            ) : (
             <View style={styles.swipeHintArea}>
               <Animated.View style={[styles.swipePromptRow, pulseStyle]}>
                 <Text style={styles.swipePrompt}>SWIPE</Text>
@@ -297,11 +307,12 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
                 </Pressable>
               </View>
             </View>
+            )}
           </Animated.View>
         </GestureDetector>
       ) : (
-        <View style={styles.content}>
-          <View style={styles.upperArea}>
+        <View style={[styles.content, desktop && styles.desktopPlayColumn]}>
+          <View style={desktop ? styles.desktopUpper : styles.upperArea}>
             <Text style={styles.title}>COLOR MATCH</Text>
             <Text style={styles.question}>
               DOES THE MEANING{"\n"}MATCH THE TEXT COLOR?
@@ -324,7 +335,7 @@ export const ColorMatchScreen: React.FC<ColorMatchScreenProps> = ({
             </View>
           </View>
 
-          <View style={styles.swipeHintArea}>
+          <View style={desktop ? styles.desktopAnswers : styles.swipeHintArea}>
             <View style={styles.gameOverContainer}>
               <Text style={styles.timeUpText}>TIME'S UP!</Text>
               <Text style={styles.scoreCount}>{score}/{total}</Text>
@@ -462,6 +473,32 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     gap: 28,
   },
+  desktopPlayColumn: {
+    justifyContent: "flex-start",
+    paddingTop: THEME.desktopPanelTop,
+  },
+  desktopUpper: {
+    alignItems: "center",
+  },
+  desktopAnswers: {
+    marginTop: 32,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+  },
+  answerButton: {
+    borderWidth: 2,
+    borderColor: THEME.border,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    minWidth: 160,
+    alignItems: "center",
+  },
+  answerButtonText: {
+    fontFamily: THEME.fontFamily,
+    fontSize: THEME.fontSizeMedium,
+    color: THEME.railIdle,
+  },
   card: {
     flex: 1,
     flexBasis: 0,
@@ -546,8 +583,10 @@ const styles = StyleSheet.create({
     width: 280,
     borderLeftWidth: 1,
     borderLeftColor: THEME.border,
-    padding: 28,
-    justifyContent: "center",
+    paddingHorizontal: 28,
+    paddingTop: THEME.desktopPanelTop,
+    paddingBottom: 28,
+    justifyContent: "flex-start",
   },
   sideStats: {
     gap: 10,
