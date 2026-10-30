@@ -11,6 +11,11 @@ export function installWebShell() {
   const style = document.createElement("style");
   style.setAttribute("data-hex", "shell");
   style.textContent = `
+    :root {
+      /* Stage size. applyDesktopStage sets both in px while web ENTER is open. */
+      --stage-w: 100vw;
+      --stage-h: 100dvh;
+    }
     html, body, #root {
       height: 100%;
       margin: 0;
