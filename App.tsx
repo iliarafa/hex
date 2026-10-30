@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, useWindowDimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -24,6 +24,7 @@ import { AppShell, useIsDesktop } from "./src/components/AppShell";
 import { DesktopNav, type DesktopMode } from "./src/components/DesktopNav";
 import { useBackHandler } from "./src/utils/backHandler";
 import { dismissWebBoot } from "./src/utils/webShell";
+import { shouldLockStage } from "./src/utils/enterLayout";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ PressStart2P_400Regular });
@@ -43,6 +44,8 @@ export default function App() {
   const [spectrumBox, setSpectrumBox] = useState({ width: 0, height: 0 });
   const [editingDrawingId, setEditingDrawingId] = useState<string | null>(null);
   const desktop = useIsDesktop();
+  const windowSize = useWindowDimensions();
+  const lockStage = shouldLockStage(Platform.OS, screen, windowSize.width, windowSize.height);
   const settingsFrom = useRef<typeof screen>("picker");
 
   const handleColorChange = useCallback(
@@ -264,7 +267,7 @@ export default function App() {
   };
 
   return (
-    <AppShell>
+    <AppShell lockStage={lockStage}>
     <FavoritesProvider>
       <DrawingsProvider>
         <GestureHandlerRootView style={styles.root}>

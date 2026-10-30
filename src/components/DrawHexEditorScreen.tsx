@@ -20,7 +20,7 @@ import {
 } from "react-native-gesture-handler";
 import { AppModal as Modal } from "./AppModal";
 import { useAppViewport, useIsDesktop } from "./AppShell";
-import { railWidthFor } from "./DesktopNav";
+import { railWidthFor } from "../utils/rail";
 import { webDragStyle } from "../utils/webDrag";
 import {
   runOnJS,

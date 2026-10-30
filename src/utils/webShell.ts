@@ -11,6 +11,11 @@ export function installWebShell() {
   const style = document.createElement("style");
   style.setAttribute("data-hex", "shell");
   style.textContent = `
+    :root {
+      /* Stage size. applyDesktopStage sets both in px while web ENTER is open. */
+      --stage-w: 100vw;
+      --stage-h: 100dvh;
+    }
     html, body, #root {
       height: 100%;
       margin: 0;
@@ -38,6 +43,18 @@ export function installWebShell() {
       user-select: text;
       -webkit-user-select: text;
       touch-action: manipulation;
+    }
+    /* Web ENTER only. Phone inputs are outside this form, so their focus ring stays. */
+    [data-testid="enter-form"] input,
+    [data-testid="enter-form"] input:focus,
+    [data-testid="enter-form"] input:focus-visible {
+      outline: none !important;
+      outline-style: none !important;
+      outline-offset: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      -webkit-appearance: none;
+      appearance: none;
     }
   `;
   document.head.appendChild(style);
