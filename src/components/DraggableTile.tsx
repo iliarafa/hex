@@ -31,6 +31,12 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const zIndex = useSharedValue(0);
+  // Pointer position when the finger went down. Pan translation is rebased to 0
+  // after the touch-slop threshold, which leaves the tile a constant distance
+  // behind the pointer for the whole drag.
+  const originX = useSharedValue(0);
+  const originY = useSharedValue(0);
+  const hasOrigin = useSharedValue(false);
 
   const startRef = useRef(onDragStart);
   const endRef = useRef(onDragEnd);
@@ -40,19 +46,36 @@ export const DraggableTile: React.FC<DraggableTileProps> = ({
   const callEnd = useCallback((x: number, y: number) => endRef.current(x, y), []);
 
   const gesture = usePanGesture({
-    onBegin: () => {
+    // Activate immediately so the tile is not stuck behind the ~15px slop.
+    minDistance: 0,
+    onTouchesDown: (event) => {
+      const touch = event.changedTouches[0] ?? event.allTouches[0];
+      if (!touch) return;
+      originX.value = touch.absoluteX;
+      originY.value = touch.absoluteY;
+      hasOrigin.value = true;
+    },
+    onBegin: (event) => {
+      if (!hasOrigin.value) {
+        originX.value = event.absoluteX;
+        originY.value = event.absoluteY;
+        hasOrigin.value = true;
+      }
       scale.value = withSpring(1.15);
       zIndex.value = 100;
       runOnJS(callStart)();
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
       runOnJS(playSound)("lift");
     },
-    onUpdate: (e) => {
-      translateX.value = e.translationX;
-      translateY.value = e.translationY;
+    onUpdate: (event) => {
+      translateX.value = event.absoluteX - originX.value;
+      translateY.value = event.absoluteY - originY.value;
     },
-    onDeactivate: (e) => {
-      runOnJS(callEnd)(e.translationX, e.translationY);
+    onDeactivate: (event) => {
+      const dx = event.absoluteX - originX.value;
+      const dy = event.absoluteY - originY.value;
+      hasOrigin.value = false;
+      runOnJS(callEnd)(dx, dy);
       translateX.value = withSpring(0);
       translateY.value = withSpring(0);
       scale.value = withSpring(1);
