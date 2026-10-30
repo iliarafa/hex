@@ -169,33 +169,35 @@ export const EnterHexScreen: React.FC<EnterHexScreenProps> = ({ onBack }) => {
           </View>
 
           <View style={styles.webInputRow}>
-            {mode === "hex" ? (
-              <Text style={[styles.webHash, { fontSize: fluid.digit, lineHeight: fluid.digit * 1.5 }]}>#</Text>
-            ) : null}
-            <TextInput
-              ref={inputRef}
-              style={[
-                styles.webInput,
-                {
-                  fontSize: inputFont,
-                  lineHeight: inputFont * 1.5,
-                  width: mode === "hex" ? fluid.digit * 6 : "100%",
-                  textAlign: mode === "name" ? "center" : "left",
-                },
-              ]}
-              value={input}
-              onChangeText={handleChange}
-              maxLength={mode === "hex" ? 6 : 40}
-              autoFocus={!desktop}
-              autoCapitalize={mode === "hex" ? "characters" : "none"}
-              autoCorrect={false}
-              placeholder={mode === "hex" ? "000000" : "enter color name"}
-              placeholderTextColor={THEME.border}
-              selectionColor={THEME.text}
-              onSubmitEditing={handleSubmit}
-              returnKeyType="go"
-              enterKeyHint="go"
-            />
+            <View style={[styles.webField, mode === "name" && styles.webFieldWide]}>
+              {mode === "hex" ? (
+                <Text style={[styles.webHash, { fontSize: fluid.digit, lineHeight: fluid.digit * 1.5 }]}>#</Text>
+              ) : null}
+              <TextInput
+                ref={inputRef}
+                style={[
+                  styles.webInput,
+                  {
+                    fontSize: inputFont,
+                    lineHeight: inputFont * 1.5,
+                    width: mode === "hex" ? fluid.digit * 6 : "100%",
+                    textAlign: mode === "name" ? "center" : "left",
+                  },
+                ]}
+                value={input}
+                onChangeText={handleChange}
+                maxLength={mode === "hex" ? 6 : 40}
+                autoFocus={!desktop}
+                autoCapitalize={mode === "hex" ? "characters" : "none"}
+                autoCorrect={false}
+                placeholder={mode === "hex" ? "000000" : "enter color name"}
+                placeholderTextColor={THEME.border}
+                selectionColor={THEME.text}
+                onSubmitEditing={handleSubmit}
+                returnKeyType="go"
+                enterKeyHint="go"
+              />
+            </View>
           </View>
 
           {error ? (
@@ -572,6 +574,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
   },
+  webField: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.text,
+    borderRadius: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  webFieldWide: {
+    width: "100%",
+  },
   webHash: {
     fontFamily: THEME.fontFamily,
     color: THEME.textDim,
@@ -580,7 +594,9 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fontFamily,
     color: THEME.text,
     padding: 0,
-    outlineWidth: 0,
+    borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: "transparent",
   },
   webError: {
     fontFamily: THEME.fontFamily,

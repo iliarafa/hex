@@ -44,6 +44,18 @@ export function installWebShell() {
       -webkit-user-select: text;
       touch-action: manipulation;
     }
+    /* Web ENTER only. Phone inputs are outside this form, so their focus ring stays. */
+    [data-testid="enter-form"] input,
+    [data-testid="enter-form"] input:focus,
+    [data-testid="enter-form"] input:focus-visible {
+      outline: none !important;
+      outline-style: none !important;
+      outline-offset: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
   `;
   document.head.appendChild(style);
 
